@@ -1,0 +1,115 @@
+@prefix : <http://madrid.accidentes.linkeddata.es/ontology#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix schema: <http://schema.org/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix geo: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+
+<http://madrid.accidentes.linkeddata.es/ontology#> rdf:type owl:Ontology ;
+    dcterms:title "Ontología de Accidentes de Tráfico en Madrid" ;
+    dcterms:description "Vocabulario para la representación semántica de siniestros viales en el municipio de Madrid." .
+
+#    Classes ########
+
+:Accidente rdf:type owl:Class ;
+    rdfs:label "Accidente" ;
+    rdfs:comment "Representa un siniestro vial registrado por la Policía Municipal." .
+
+:Distrito rdf:type owl:Class ;
+    rdfs:subClassOf schema:Place ;
+    rdfs:label "Distrito" ;
+    rdfs:comment "División administrativa de Madrid donde ocurre el accidente." .
+
+:Vehiculo rdf:type owl:Class ;
+    rdfs:label "Vehículo" ;
+    rdfs:comment "Tipo de vehículo involucrado en el accidente." .
+
+:Implicado rdf:type owl:Class ;
+    rdfs:subClassOf foaf:Person ;
+    rdfs:label "Persona Implicada" ;
+    rdfs:comment "Individuo (conductor, pasajero o peatón) involucrado en el siniestro." .
+
+:EstadoMeteorologico rdf:type owl:Class ;
+    rdfs:label "Estado Meteorológico" .
+
+#    Object Properties ########
+
+
+:ocurrioEnDistrito rdf:type owl:ObjectProperty ;
+    rdfs:domain :Accidente ;
+    rdfs:range :Distrito ;
+    rdfs:label "ocurrió en distrito" .
+
+:tieneEstadoMeteorologico rdf:type owl:ObjectProperty ;
+    rdfs:domain :Accidente ;
+    rdfs:range :EstadoMeteorologico ;
+    rdfs:label "tiene estado meteorológico" .
+
+:involucraVehiculo rdf:type owl:ObjectProperty ;
+    rdfs:domain :Accidente ;
+    rdfs:range :Vehiculo ;
+    rdfs:label "involucra vehículo" .
+
+:tieneImplicado rdf:type owl:ObjectProperty ;
+    rdfs:domain :Accidente ;
+    rdfs:range :Implicado ;
+    rdfs:label "tiene implicado" .
+
+
+#    Data Properties ########
+
+:numExpediente rdf:type owl:DatatypeProperty ;
+    rdfs:subPropertyOf dcterms:identifier ;
+    rdfs:domain :Accidente ;
+    rdfs:range xsd:string ;
+    rdfs:label "número de expediente" .
+
+:fechaAccidente rdf:type owl:DatatypeProperty ;
+    rdfs:subPropertyOf dcterms:date ;
+    rdfs:domain :Accidente ;
+    rdfs:range xsd:date ;
+    rdfs:label "fecha del accidente" .
+
+:horaAccidente rdf:type owl:DatatypeProperty ;
+    rdfs:domain :Accidente ;
+    rdfs:range xsd:time ;
+    rdfs:label "hora del accidente" .
+
+:direccion rdf:type owl:DatatypeProperty ;
+    rdfs:subPropertyOf schema:address ;
+    rdfs:domain :Accidente ;
+    rdfs:range xsd:string ;
+    rdfs:label "localización" .
+
+:rangoEdad rdf:type owl:DatatypeProperty ;
+    rdfs:domain :Implicado ;
+    rdfs:range xsd:string ;
+    rdfs:label "rango de edad" .
+
+:genero rdf:type owl:DatatypeProperty ;
+    rdfs:domain :Implicado ;
+    rdfs:range xsd:string ;
+    rdfs:label "sexo" .
+
+:lesividad rdf:type owl:DatatypeProperty ;
+    rdfs:domain :Implicado ;
+    rdfs:range xsd:string ;
+    rdfs:label "grado de lesividad" .
+
+:positivaAlcohol rdf:type owl:DatatypeProperty ;
+    rdfs:domain :Implicado ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "positivo en alcohol" .
+
+:latitud rdf:type owl:DatatypeProperty ;
+    rdfs:subPropertyOf geo:lat ;
+    rdfs:domain :Accidente ;
+    rdfs:range xsd:float .
+
+:longitud rdf:type owl:DatatypeProperty ;
+    rdfs:subPropertyOf geo:long ;
+    rdfs:domain :Accidente ;
+    rdfs:range xsd:float .
