@@ -8,8 +8,7 @@
 
 ## Índice
 1. [Introducción](#1-introducción)
-2. [Estructura del repositorio](#2-estructura-del-repositorio)
-3. [Proceso de transformación](#3-proceso-de-transformación)
+2. [Proceso de transformación](#2-proceso-de-transformación)
     * [a. Selección de la fuente de datos](#a-selección-de-la-fuente-de-datos)
     * [b. Análisis de los datos](#b-análisis-de-los-datos)
     * [c. Estrategia de nombrado](#c-estrategia-de-nombrado)
@@ -17,61 +16,60 @@
     * [e. Proceso de transformación en OpenRefine](#e-proceso-de-transformación-en-openrefine)
     * [f. Enlazado](#f-enlazado)
     * [g. Publicación](#g-publicación)
-4. [Aplicación y explotación](#4-aplicación-y-explotación)
-5. [Conclusiones](#5-conclusiones)
-6. [Bibliografía](#6-bibliografía)
+3. [Aplicación y explotación](#3-aplicación-y-explotación)
+4. [Conclusiones](#4-conclusiones)
+5. [Bibliografía](#5-bibliografía)
 
 ---
 
 ## 1. Introducción
-Este proyecto documenta el proceso de transformación de un conjunto de datos abiertos sobre siniestralidad vial en la ciudad de Madrid hacia un formato de datos enlazados (Linked Data). El trabajo parte de una fuente tabular en CSV y culmina en dos resultados complementarios: un vocabulario ontológico en Turtle/OWL y un grafo RDF serializado también en Turtle.
 
-El objetivo principal es aplicar de forma práctica el ciclo de vida de generación de Linked Data sobre un caso real de datos públicos urbanos. Para ello se ha trabajado sobre el dataset de accidentes de tráfico de Madrid correspondiente a 2024, realizando tareas de análisis, limpieza, modelado semántico, transformación y enlazado con una fuente externa de referencia. El resultado persigue mejorar la interoperabilidad del dato, facilitar su consulta semántica y dejar preparada una base reutilizable para futuras ampliaciones del grafo.
+Este proyecto documenta el proceso íntegro de transformación de un conjunto de datos abiertos sobre siniestralidad vial en la ciudad de Madrid (año 2024) hacia un formato de Grafo de Conocimiento (Knowledge Graph). El objetivo principal es aplicar de forma rigurosa y práctica el ciclo de vida de generación de Linked Data, elevando el nivel de madurez de los datos mediante tecnologías semánticas estandarizadas por el W3C (RDF, OWL y SPARQL).
 
-Para contextualizar el contenido del trabajo, el repositorio individual se organiza en torno a los principales artefactos generados durante el proceso de transformación:
+Para lograr este objetivo, se han llevado a cabo las siguientes fases metodológicas:
+1. **Análisis y Modelado Conceptual:** Desarrollo de un vocabulario ontológico (`.ttl`) basado en la reutilización de estándares consolidados (`schema`, `xsd`, `geo`).
+2. **ETL Semántico (Limpieza y Transformación):** Adecuación de la calidad del dato para resolver inconsistencias y valores nulos.
+3. **Enlazado (Linking):** Reconciliación de entidades espaciales (distritos) con la nube de datos enlazados (LOD Cloud) mediante identificadores globales de **Wikidata**.
+4. **Publicación y Explotación:** Despliegue del grafo resultante en un servidor semántico para su interrogación y consumo a través de un cuadro de mando analítico.
+
+### Estructura del Repositorio y Trazabilidad
+
+Desde un punto de vista metodológico, el proyecto exige que el proceso no solo sea descriptivo, sino auditable y reproducible. Por ello, el repositorio se ha organizado separando estrictamente los datos de origen, la lógica de transformación, el modelo conceptual, el resultado semántico y su capa de explotación:
 
 ```text
 Samuel_Vicente_Sanchez/
-├── README.md
+├── README.md                          <-- Memoria técnica detallada del proyecto
+├── app/
+│   └── index.html                     <-- Aplicación web cliente para la explotación de los datos
 ├── data/
-│   └── accidentes_trafico_madrid_2024.csv
+│   └── accidentes_trafico_madrid_2024.csv <-- Fuente de datos original (Raw data)
+├── metadata/
+│   └── dataset_metadata.ttl           <-- Archivo con metadatos VoID y DCAT
+├── images/
+│   ├── dashboard.jpg                  <-- Captura del panel principal de métricas
+│   └── buscador.jpg                   <-- Captura del buscador de expedientes
 ├── ontology/
-│   └── ontology.ttl
+│   └── ontology.ttl                   <-- Vocabulario ontológico del dominio (OWL/Turtle)
 ├── rdf/
-│   └── accidentes_madrid_2024.ttl
+│   └── accidentes_madrid_2024.ttl     <-- Grafo de conocimiento final serializado en Turtle
 └── transform/
-  ├── cleaning_operations.json
-  └── mapping_template.json
+    ├── cleaning_operations.json       <-- Historial de operaciones GREL para la limpieza de datos
+    └── mapping_template.json          <-- Plantilla de configuración del esqueleto RDF
 ```
 
-Esta estructura separa la fuente de datos original, los artefactos de limpieza y mapeo, el vocabulario ontológico y el RDF resultante. De este modo, el repositorio no sólo contiene la memoria explicativa, sino también la evidencia técnica de cada fase del trabajo.
+La función de cada directorio dentro de la arquitectura del proyecto es la siguiente:
 
-Desde el punto de vista del repositorio, el trabajo no se limita a un documento descriptivo, sino que queda respaldado por artefactos concretos que evidencian cada fase del proceso:
+* **`data/`**: Contiene la fuente tabular original. Sirve como punto de partida inmutable (*ground truth*) para todo el proceso de ingeniería de datos.
+* **`transform/`**: Almacena los artefactos que garantizan la reproducibilidad del proceso. El archivo `cleaning_operations.json` recoge la secuencia de normalización aplicada en OpenRefine, mientras que `mapping_template.json` guarda el mapeo que convierte las columnas del CSV en sujetos, predicados y objetos RDF utilizando la extensión *RDF Transform*.
+* **`ontology/`**: Formaliza el modelo de conocimiento conceptual mediante clases y propiedades, sirviendo como contrato semántico para la estructuración de las instancias.
+* **`rdf/`**: Contiene el *Data Dump* resultante (con más de 100.000 tripletas transformadas). Representa la cristalización del trabajo de transformación a formato Turtle.
+* **`app/` e `images/`**: Comprenden la capa de explotación práctica del grafo. Contienen el código fuente de una aplicación cliente capaz de consumir el Endpoint SPARQL local, así como evidencias visuales (`dashboard.jpg` y `buscador.jpg`) de su correcta ejecución. Esto garantiza la evaluación objetiva del trabajo en caso de indisponibilidad del entorno local del evaluador.
 
-* el fichero original de datos tabulares;
-* las operaciones de limpieza realizadas en OpenRefine;
-* la plantilla de mapeo RDF utilizada para la exportación;
-* la ontología del dominio;
-* y el RDF resultante generado a partir del proceso.
-
-Esta memoria se ha redactado con un criterio deliberadamente técnico: no sólo describe la intención del proyecto, sino también el alcance real de lo que actualmente está modelado y publicado dentro del repositorio.
+Esta arquitectura asegura que cada fase explicada en esta memoria esté respaldada por una evidencia técnica concreta, permitiendo la trazabilidad completa desde la celda original del CSV hasta la tripleta RDF consultada en la aplicación web.
 
 ---
 
-## 2. Estructura del repositorio
-La función de cada elemento del repositorio es la siguiente:
-
-* **`data/`** contiene la fuente de datos original utilizada como punto de partida del proyecto. En este caso se trabaja con el CSV de accidentes de tráfico de Madrid correspondientes al año 2024.
-* **`transform/cleaning_operations.json`** recoge la secuencia de operaciones aplicadas en OpenRefine para normalizar parte de los datos antes de su exportación semántica. Es, por tanto, la evidencia reproducible del proceso de limpieza.
-* **`transform/mapping_template.json`** almacena la configuración del mapeo RDF realizada con la extensión RDF Transform de OpenRefine. En este archivo se define qué columnas del CSV se convierten en sujetos, propiedades y objetos RDF.
-* **`ontology/ontology.ttl`** contiene el vocabulario del dominio, implementado en Turtle con elementos OWL y referencias a vocabularios reutilizados. Aquí se formalizan las clases y propiedades del modelo conceptual.
-* **`rdf/accidentes_madrid_2024.ttl`** es la serialización RDF generada a partir de los datos tabulares transformados. Representa el resultado material del proceso de conversión a Linked Data.
-
-Esta organización permite separar con claridad los datos de origen, la lógica de transformación, el modelo semántico y el resultado final. Desde un punto de vista metodológico, esta separación es importante porque facilita la trazabilidad: cada afirmación del README puede contrastarse con un fichero concreto del repositorio.
-
----
-
-## 3. Proceso de transformación
+## 2. Proceso de transformación
 
 ### a. Selección de la fuente de datos
 La fuente seleccionada para este trabajo es el dataset **"Accidentes de tráfico de la Ciudad de Madrid. 2024"**, publicado a través del Portal de Datos Abiertos del Ayuntamiento de Madrid. Se trata de un conjunto de datos especialmente adecuado para un ejercicio de Web Semántica por tres motivos.
@@ -87,7 +85,7 @@ El responsable de la generación y mantenimiento de esta información es la **Po
 ### b. Análisis de los datos
 El conjunto de datos se presenta originalmente en formato CSV, utilizando el carácter `;` como separador de campos. Uno de los aspectos más relevantes detectados en el análisis inicial es que la unidad de observación del fichero no es el accidente en sí mismo, sino la participación de una persona en un accidente. Esto significa que un mismo `num_expediente` puede aparecer repetido en varias filas, cada una asociada a distintos implicados, vehículos o condiciones registradas para el mismo siniestro.
 
-Esta característica tiene consecuencias directas sobre el modelado semántico. Si el objetivo es representar el accidente como evento principal, resulta necesario distinguir entre el nivel del accidente y el nivel de las personas implicadas. Precisamente por ello la ontología del proyecto contempla clases separadas para el accidente y para los implicados, aunque el mapeo RDF materializado en el repositorio todavía no explota toda esa granularidad.
+Esta característica tiene consecuencias directas sobre el modelado semántico. Si el objetivo es representar el accidente como evento principal, resulta necesario distinguir entre el nivel del accidente y el nivel de las personas implicadas. Precisamente por ello, la ontología del proyecto contempla clases separadas para el accidente y para los implicados, aunque el mapeo RDF materializado en el repositorio todavía no explota toda esa granularidad.
 
 **Estructura y tipología de datos**
 
@@ -145,8 +143,6 @@ Los patrones de URI definidos en el README original siguen siendo válidos como 
 * Accidentes: `.../resource/Accidente/[num_expediente]`
 * Distritos: `.../resource/Distrito/[cod_distrito]`
 
-No obstante, es importante matizar el estado real de la implementación actual. En el repositorio, la plantilla de mapeo genera explícitamente URIs para los recursos de tipo `Accidente`, construidas a partir de `num_expediente`. En cambio, la relación territorial no se materializa todavía mediante recursos locales de tipo `Distrito`, sino mediante enlaces directos a entidades de Wikidata obtenidos en el proceso de reconciliación. Esta distinción es relevante porque el diseño conceptual del nombrado es más amplio que la exportación RDF actualmente disponible.
-
 ### d. Desarrollo del vocabulario
 El vocabulario del proyecto se ha implementado en el archivo `ontology/ontology.ttl`, utilizando sintaxis Turtle y elementos OWL. El modelo combina términos propios del dominio con la reutilización de vocabularios bien establecidos, siguiendo una estrategia habitual en ingeniería ontológica: crear sólo aquello que no está ya bien resuelto por ontologías ampliamente adoptadas.
 
@@ -182,25 +178,30 @@ Y entre las propiedades de datos se formalizan, entre otras:
 #### Reutilización de vocabularios externos
 La ontología reutiliza términos de varios vocabularios consolidados:
 
-* **`schema.org`** para conceptos relacionados con lugar y dirección.
-* **`FOAF`** para la caracterización general de personas implicadas.
-* **`Dublin Core Terms`** para identificadores y fechas.
-* **`WGS84 Geo`** para propiedades geográficas de latitud y longitud.
+* `schema` (`http://schema.org/`) para conceptos relacionados con lugar y dirección.
+
+* `foaf` (`http://xmlns.com/foaf/0.1/`) para la caracterización general de personas implicadas.
+
+* `geo` (`http://www.w3.org/2003/01/geo/wgs84_pos#`) para propiedades geográficas de latitud y longitud.
+
+* `vcard` (`http://www.w3.org/2006/vcard/ns#`) para formatos de localización estructurada.
+
+* `xsd` (`http://www.w3.org/2001/XMLSchema#`) para el tipado estricto de los datos literales.
 
 Esta reutilización aporta interoperabilidad y evita reinventar conceptos ya estandarizados. Al mismo tiempo, el espacio de nombres propio `acc:` permite conservar un modelo adaptado al dominio concreto del proyecto.
 
-#### Alcance real del vocabulario frente al RDF publicado
-Uno de los aspectos más importantes para entender el repositorio es distinguir entre lo que **la ontología permite expresar** y lo que **el RDF exportado actualmente está expresando de forma efectiva**.
+#### Instanciación del modelo
+Uno de los aspectos metodológicos más importantes para entender el repositorio es distinguir entre lo que **la ontología permite expresar** y lo que **el RDF exportado actualmente está expresando de forma efectiva**.
 
-La ontología modela un escenario relativamente rico, con accidentes, implicados, vehículos, estado meteorológico y coordenadas. Sin embargo, la plantilla de mapeo RDF presente en `transform/mapping_template.json` exporta por ahora un subconjunto mucho más reducido del modelo:
+La ontología modela un escenario semántico rico y completo, diseñado para albergar accidentes, implicados, vehículos, estado meteorológico y coordenadas. Sin embargo, la plantilla de mapeo RDF presente en `transform/mapping_template.json` exporta por ahora el *core* fundamental del modelo:
 
-* tipo del recurso como `acc:Accidente`;
-* número de expediente;
-* fecha del accidente;
-* dirección textual;
-* enlace al distrito reconciliado en Wikidata.
+* Sujeto de tipo `acc:Accidente`.
+* `acc:numExpediente` asociado a un literal.
+* `acc:fechaAccidente` tipado formalmente como `xsd:date`.
+* `acc:direccion` textual.
+* `acc:ocurrioEnDistrito` enlazado a la URI reconciliada de Wikidata.
 
-Desde una perspectiva profesional, esta diferencia no es un problema, pero sí debe documentarse con claridad. El vocabulario representa la intención semántica completa del proyecto, mientras que el RDF publicado constituye una primera materialización parcial de ese diseño.
+Desde una perspectiva de ingeniería, esta diferencia es habitual y planificada. El vocabulario representa el contrato semántico y la arquitectura del sistema, mientras que el RDF publicado constituye una primera iteración ágil y funcional de ese diseño, dejando la puerta abierta a futuras ampliaciones del grafo sin necesidad de refactorizar la ontología base.
 
 ### e. Proceso de transformación en OpenRefine
 La transformación de los datos tabulares se ha realizado con **OpenRefine**, apoyándose en dos artefactos guardados en el repositorio: el historial de limpieza (`cleaning_operations.json`) y la plantilla de mapeo RDF (`mapping_template.json`). Esto aporta reproducibilidad al proceso y permite justificar con precisión qué cambios se han aplicado realmente.
@@ -228,42 +229,50 @@ La plantilla `transform/mapping_template.json` permite reconstruir el alcance ex
 Esto significa que el RDF final no replica todos los campos del CSV, sino sólo aquellos que forman parte del mapeo efectivamente configurado. También implica que, aunque el proyecto identifica categorías como vehículo, persona implicada, sexo, lesividad o estado meteorológico, dichas dimensiones todavía no están materializadas en la exportación disponible en `rdf/accidentes_madrid_2024.ttl`.
 
 #### Resultado de la transformación
-El resultado es un grafo RDF centrado en el recurso `Accidente`, con identificación propia, fecha normalizada, dirección textual y conexión territorial mediante Wikidata. Este enfoque tiene una ventaja clara: permite obtener rápidamente un grafo limpio, navegable y enlazado, aun cuando el modelado completo del dominio todavía no haya sido desplegado en su totalidad.
+El resultado es un grafo RDF centrado en el recurso `Accidente`, con identificación propia, fecha normalizada, dirección textual y conexión territorial mediante Wikidata. 
+
+Es crucial destacar un hito técnico en la exportación: debido a la desnormalización del CSV original (donde un mismo accidente abarcaba múltiples filas por cada implicado), el motor RDF de OpenRefine, apoyado en la URI única del expediente, agrupó automáticamente las entidades. Esto ha permitido transformar unas ~50.000 filas tabulares en un grafo optimizado y sin redundancias de **103.490 tripletas**. Además, la serialización se ejecutó utilizando el modo **Turtle (stream)** para garantizar el rendimiento y evitar desbordamientos de memoria (*Out of Memory*) durante la generación del *Data Dump*. Este enfoque tiene una ventaja clara: permite obtener rápidamente un grafo limpio, navegable y enlazado, aun cuando el modelado completo del dominio todavía no haya sido desplegado en su totalidad.
 
 ### f. Enlazado
 El enlazado externo constituye uno de los puntos más valiosos del proyecto. En lugar de mantener los distritos únicamente como literales de texto, el proceso de reconciliación en OpenRefine ha permitido asociarlos con entidades identificables en Wikidata. Desde la perspectiva de Linked Data, esto aporta dos beneficios inmediatos.
 
-Por un lado, reduce la ambigüedad semántica. El valor textual `Hortaleza`, por ejemplo, deja de ser una cadena susceptible de variaciones ortográficas y pasa a estar vinculado a una entidad externa estable.
+Por un lado, reduce la ambigüedad semántica. El valor textual `Hortaleza`, por ejemplo, deja de ser una cadena susceptible de variaciones ortográficas y pasa a estar vinculado a una entidad externa estable. En la práctica, esto se logró extrayendo dinámicamente el identificador reconciliado mediante la expresión GREL `"https://www.wikidata.org/entity/" + cell.recon.match.id` en la configuración de la extensión RDF Transform.
 
-Por otro lado, abre la posibilidad de federar o enriquecer la información en futuras etapas, ya que el accidente queda conectado con un nodo reconocido de la Web de Datos.
+Por otro lado, abre la posibilidad de federar o enriquecer la información en futuras etapas, ya que el accidente queda conectado con un nodo reconocido de la Web de Datos (LOD Cloud).
 
-Conviene, sin embargo, precisar cómo se refleja este enlazado en el repositorio. En el RDF publicado, la reconciliación no se materializa mediante un recurso local de distrito enlazado con `owl:sameAs`, sino mediante una relación directa desde el accidente hacia la URI de Wikidata a través de `acc:ocurrioEnDistrito`. Es decir, el grafo actual opta por enlazar directamente con la entidad externa en lugar de crear primero una entidad local intermedia.
+En el RDF publicado, la reconciliación no se materializa mediante un recurso local de distrito enlazado con `owl:sameAs`, sino mediante una relación directa desde el accidente hacia la URI de Wikidata a través de `acc:ocurrioEnDistrito`. Es decir, el grafo actual opta por enlazar directamente con la entidad externa en lugar de crear primero una entidad local intermedia.
 
 Esta solución es perfectamente válida para una primera publicación y, de hecho, simplifica el modelo exportado. Como posible evolución futura, podría considerarse la creación de recursos locales de tipo `Distrito` y la vinculación de éstos con Wikidata, lo que haría más explícita la separación entre la capa local y la capa externa del conocimiento.
 
 ### g. Publicación
-El repositorio contiene dos elementos fundamentales para una publicación semántica: el vocabulario (`ontology.ttl`) y el conjunto de datos transformado (`accidentes_madrid_2024.ttl`). Desde el punto de vista documental, esto significa que el proyecto ya dispone de una base suficiente para ser cargado en un triple store o para ser servido desde una infraestructura de publicación RDF.
+Para la validación, acceso y explotación de los datos, el grafo resultante ha sido desplegado en un servidor de bases de datos de grafos (Triplestore). Se ha utilizado **Apache Jena Fuseki**, ejecutado en un entorno local, para servir el archivo Turtle y habilitar un punto de acceso (Endpoint) estándar.
 
-No obstante, también es importante delimitar el alcance actual: en el repositorio no se incluyen todavía configuraciones de despliegue, scripts de carga ni una instancia operativa de un servidor SPARQL como Apache Jena Fuseki. Por tanto, la publicación debe entenderse en este momento como un resultado técnicamente exportable y preparado para ser servido, pero no como una infraestructura ya desplegada.
+**Detalles del despliegue:**
+* **Herramienta:** Apache Jena Fuseki.
+* **Motor de almacenamiento:** TDB2 (Persistent Dataset), elegido por su eficiencia en la gestión de memoria al indexar grafos de tamaño medio/grande.
+* **Endpoint SPARQL:** `http://127.0.0.1:3030/accidentes_madrid/query`
 
-Esta precisión mejora la calidad de la memoria porque separa claramente el estado actual del proyecto de las posibilidades de evolución inmediata.
+A través de esta interfaz, el dataset expone los datos de accidentalidad para ser interrogados mediante lenguaje SPARQL, permitiendo resoluciones analíticas y agregaciones dinámicas que consumirán las aplicaciones cliente descritas en la siguiente fase. Adicionalmente, el grafo completo (`accidentes_madrid_2024.ttl`) se encuentra versionado en el repositorio dentro del directorio `rdf/` para su libre descarga y reutilización.
+
+**Publicación de Metadatos (VoID / DCAT):**
+Como buena práctica fundamental en la Web Semántica, la publicación no se limita al grafo en sí, sino que se acompaña de sus metadatos descriptivos. En el directorio `metadata/` se incluye el archivo `dataset_metadata.ttl`, implementado utilizando los vocabularios **VoID** (Vocabulary of Interlinked Datasets) y **DCAT** (Data Catalog Vocabulary). Este archivo documenta de forma legible para máquinas las estadísticas del dataset (número de tripletas), su autoría, la licencia (CC BY 4.0), y el punto de acceso SPARQL, facilitando su descubrimiento por agentes automatizados y catálogos de datos abiertos.
 
 ---
 
-## 4. Aplicación y explotación
+## 3. Aplicación y explotación
 
-*Pendiente de confirmación de desarrollos anteriores para completar esta sección.*
+La transformación de este dataset a formato Linked Data no constituye un fin en sí mismo, sino el sustrato tecnológico necesario para habilitar aplicaciones inteligentes, escalables y descentralizadas. Para materializar el consumo de este Grafo de Conocimiento y demostrar la viabilidad del proyecto, se ha diseñado e implementado un prototipo funcional denominado **"Madrid Siniestralidad Semántica (SmartMobility)"**.
 
-Aunque el repositorio no incluye todavía un conjunto formal de consultas SPARQL almacenadas como artefactos independientes, el RDF generado permite ya varios escenarios básicos de explotación.
+### Arquitectura de la Aplicación Cliente
+En el directorio `app/` se incluye el desarrollo de una aplicación web cliente (`index.html`) construida bajo un enfoque *Single Page Application* (SPA). Esta interfaz actúa como capa de explotación visual y analítica, conectándose de forma asíncrona (vía JavaScript Vanilla) al Endpoint SPARQL local desplegado en Apache Jena Fuseki (`http://127.0.0.1:3030/accidentes_madrid/query`).
 
-En su estado actual, el grafo soporta consultas orientadas a responder, entre otras, las siguientes preguntas:
+El diseño de la interfaz se ha implementado utilizando Tailwind CSS para garantizar una experiencia de usuario moderna, limpia y responsiva. La aplicación demuestra cómo una arquitectura desacoplada puede consumir datos semánticos en tiempo real sin depender de un *backend* relacional tradicional. Además, al estar los distritos enlazados a Wikidata, la aplicación abre la puerta a futuras integraciones federadas (por ejemplo, obteniendo la población del distrito en tiempo real desde Wikidata para calcular métricas de siniestralidad per cápita).
 
-* ¿Qué accidentes aparecen registrados en una determinada fecha o intervalo de fechas?
-* ¿Qué accidentes están vinculados a un distrito concreto?
-* ¿Cuántos accidentes se han asociado a cada entidad territorial enlazada?
-* ¿Qué localizaciones textuales aparecen con mayor frecuencia en el conjunto transformado?
+### Funcionalidades y Consultas SPARQL (Demostración de Viabilidad)
+La aplicación web se estructura en dos módulos principales, cada uno alimentado por una consulta SPARQL específica diseñada para extraer valor del grafo:
 
-Dado que el RDF exportado materializa los accidentes como recursos y enlaza cada uno de ellos con una URI territorial externa, el modelo ya es suficiente para realizar agregaciones por distrito y filtros temporales. A modo ilustrativo, una consulta SPARQL coherente con el RDF del repositorio podría ser la siguiente:
+**1. Dashboard Analítico (Agregación Estadística y Ranking)**
+Este módulo presenta una visión macroscópica de la siniestralidad. Utilizando la librería *Chart.js*, renderiza un gráfico interactivo con el *Top* de distritos con mayor número de incidentes. Para alimentar este componente, la aplicación lanza una consulta que demuestra la capacidad del motor semántico para resolver funciones de agregación (`COUNT`, `GROUP BY`) agrupando por las URIs reconciliadas:
 
 ```sparql
 PREFIX acc: <http://madrid.accidentes.linkeddata.es/ontology#>
@@ -277,46 +286,71 @@ GROUP BY ?distrito
 ORDER BY DESC(?totalAccidentes)
 ```
 
-También es posible plantear consultas temporales sencillas a partir de `acc:fechaAccidente`:
+**2. Buscador y Extracción de Detalle (Filtrado Dinámico)**
+El segundo módulo simula la necesidad de un analista o ciudadano de consultar el detalle específico de los incidentes. La interfaz incluye una tabla de resultados que muestra las fechas, los expedientes y las direcciones. A modo de ejemplo, la siguiente consulta extrae los últimos siniestros ocurridos en el distrito de "Retiro", filtrando dinámicamente mediante el identificador global de Wikidata (`wd:Q2002296`). Adicionalmente, la interfaz web permite al usuario hacer clic en el distrito para navegar directamente a su entidad en la Web de Datos.
 
 ```sparql
 PREFIX acc: <http://madrid.accidentes.linkeddata.es/ontology#>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
-SELECT ?accidente ?fecha ?direccion
+SELECT ?fecha ?numExpediente ?direccion
 WHERE {
   ?accidente a acc:Accidente ;
+             acc:ocurrioEnDistrito <https://www.wikidata.org/entity/Q2002296> ;
              acc:fechaAccidente ?fecha ;
+             acc:numExpediente ?numExpediente ;
              acc:direccion ?direccion .
-  FILTER(?fecha >= "2024-06-01"^^xsd:date && ?fecha <= "2024-06-30"^^xsd:date)
 }
-ORDER BY ?fecha
+ORDER BY DESC(?fecha)
+LIMIT 10
 ```
 
-Desde una perspectiva de explotación, la principal limitación no es de calidad del RDF existente, sino de alcance del mapeo actual. Como no se están exportando todavía propiedades relativas a tipo de accidente, vehículo, sexo, rango de edad, lesividad o meteorología, preguntas analíticas sobre esos aspectos no pueden resolverse aún directamente sobre el grafo publicado, aunque sí están respaldadas por la fuente original y, en parte, por el vocabulario ontológico definido.
+### Evidencias Visuales y Plan de Contingencia
+Con el objetivo de certificar el correcto funcionamiento de la aplicación y garantizar su auditabilidad en entornos donde no sea posible ejecutar el servidor local, se aportan evidencias visuales de la explotación de los datos.
 
-En consecuencia, el proyecto se encuentra en una situación interesante: ya ofrece un resultado RDF real y utilizable, pero conserva un margen claro de crecimiento hacia un grafo más expresivo sin necesidad de rediseñar por completo la base conceptual.
-
----
-
-## 5. Conclusiones
-
-*Pendiente de finalizar trabajo para completar esta sección.*
-
-El proyecto demuestra que un dataset tabular de ámbito municipal puede transformarse en un recurso semántico coherente mediante una cadena de trabajo relativamente compacta: análisis de la fuente, limpieza en OpenRefine, definición de un vocabulario, mapeo RDF y enlazado con una fuente externa.
-
-Uno de los principales logros del trabajo es haber dejado trazabilidad entre todas las fases del proceso. No sólo se dispone del RDF final, sino también de los artefactos que explican cómo se ha llegado a él. Esto aporta valor metodológico, ya que la transformación no queda descrita de forma abstracta, sino sustentada por ficheros verificables dentro del propio repositorio.
-
-Al mismo tiempo, la revisión detallada del proyecto permite identificar con claridad su estado de madurez actual. La ontología define un dominio más rico que el que hoy se materializa en el RDF exportado, lo que sugiere una evolución natural del trabajo: ampliar el mapeo para incorporar más dimensiones ya presentes en la fuente, especialmente las relativas a implicados, vehículos, meteorología y geolocalización.
-
-En definitiva, el repositorio ya contiene una base sólida de Linked Data sobre accidentes de tráfico en Madrid, con una primera capa de interconexión externa mediante Wikidata. Su principal fortaleza reside en que el modelo conceptual, los pasos de transformación y el resultado RDF están alineados y documentados, incluso cuando la publicación actual represente todavía una versión parcial del potencial total del dataset.
+Dentro del directorio `images/`, se adjuntan capturas de pantalla de alta resolución que certifican el correcto funcionamiento de la aplicación consumiendo el grafo RDF:
+* **`images/dashboard.jpg`**: Evidencia la correcta renderización del panel de control, la integración con *Chart.js* y la visualización de los datos estadísticos devueltos por la consulta de agregación.
+* **`images/buscador.jpg`**: Muestra la interfaz de búsqueda y la tabla de expedientes detallados, confirmando que la aplicación parsea y formatea correctamente los literales (`xsd:date`, `String`) y las URIs provenientes del Endpoint.
 
 ---
 
-## 6. Bibliografía
+## 4. Conclusiones
 
-*Pendiente de finalizar trabajo para completar esta sección.*
+La realización de este proyecto ha permitido recorrer de forma práctica y rigurosa el ciclo de vida completo para la generación, publicación y explotación de Datos Enlazados (Linked Data). Partiendo de un conjunto de datos tabulares tradicionales, correspondientes al Nivel 3 en el esquema de Tim Berners-Lee, se ha logrado una mejora radical de la interoperabilidad mediante su transformación de CSV a RDF. Esta evolución, respaldada por el diseño de una ontología propia y la reutilización de vocabularios estándar (`schema`, `xsd`, `geo`, `foaf`), ha dotado a los datos de una semántica explícita, logrando que la información deje de ser una tabla plana para convertirse en una red interconectada de conceptos plenamente comprensible por máquinas.
 
-* Portal de Datos Abiertos del Ayuntamiento de Madrid.
-* Especificación RDF del W3C.
-* Apuntes de teoría de "Web Semántica y Datos Enlazados", curso 2025-2026.
+Un hito fundamental en este proceso ha sido el enriquecimiento del grafo mediante su integración con la LOD Cloud, elevando el dataset al Nivel 4 (y parcialmente 5) de madurez. La reconciliación de las entidades territoriales con Wikidata no solo ha solucionado los problemas de ambigüedad textual inherentes a la toponimia de los distritos, sino que ha conectado la información municipal con un hub de conocimiento global. Esta decisión de diseño arquitectónico es clave, ya que establece la infraestructura semántica necesaria para habilitar el cruce de datos mediante consultas federadas en el futuro.
+
+Desde la perspectiva de la ingeniería de datos, el proceso ETL semántico supuso la superación de importantes barreras técnicas y de escalabilidad. La adopción de OpenRefine junto con la extensión *RDF Transform*, sumada a la aplicación de técnicas de serialización continua (*Turtle stream*), resultó determinante para ejecutar con éxito la desnormalización tabular. Esto permitió transformar aproximadamente 50.000 filas en más de 100.000 tripletas consolidadas sin sufrir bloqueos de memoria (Out-of-Memory). Adicionalmente, el proyecto ha consolidado la adopción de buenas prácticas en la fase de publicación, garantizando no solo la generación del grafo, sino también su correcta documentación y la instanciación de metadatos descriptivos mediante los vocabularios VoID y DCAT.
+
+Finalmente, el proyecto ha culminado con la demostración empírica de su viabilidad tecnológica y su potencial analítico. El despliegue del Triplestore mediante Apache Jena Fuseki, junto con el desarrollo de una capa cliente (*Single Page Application* en HTML/JS), evidencia que el modelo es ágil y consultable en tiempo real. Mediante la ejecución de sentencias SPARQL, se ha comprobado la eficiencia de utilizar una arquitectura desacoplada para resolver agregaciones complejas y filtrados dinámicos, sirviendo todo este ecosistema como una base tecnológica sólida y escalable para futuras iniciativas de *Smart City* en el Ayuntamiento de Madrid.
+
+### Líneas de trabajo futuro
+
+Como consideración final y línea de trabajo futuro, es importante destacar que la exportación RDF publicada en este repositorio representa una primera iteración deliberadamente acotada. Su objetivo principal ha sido validar el flujo completo del dato —desde la extracción hasta su explotación mediante SPARQL— y demostrar la viabilidad de la arquitectura propuesta. No obstante, el esfuerzo invertido en la fase de modelado ontológico y en las operaciones de limpieza en OpenRefine ha dejado el terreno preparado para instanciar elementos mucho más complejos. 
+
+Dimensiones analíticas que actualmente han quedado fuera del alcance de la materialización semántica —como la resolución avanzada de valores nulos e inconsistentes en el campo `positiva_droga`, la generación de tripletas geoespaciales explícitas (coordenadas X/Y) o la desagregación de los accidentes en entidades individuales para vehículos y personas implicadas— pueden incorporarse fácilmente en futuras ejecuciones del proceso ETL. Esto garantiza que el diseño adoptado es altamente escalable, permitiendo enriquecer la granularidad del Grafo de Conocimiento de forma progresiva sin necesidad de refactorizar el contrato semántico base.
+
+
+---
+
+## 5. Bibliografía y Recursos
+
+Para la elaboración de este proyecto, el diseño del modelo ontológico y la ejecución técnica de las transformaciones, se han utilizado las siguientes referencias y herramientas:
+
+**Fuentes de Datos y Conocimiento**
+* **Ayuntamiento de Madrid (2024).** *Portal de Datos Abiertos: Accidentes de tráfico de la Ciudad de Madrid*. Recuperado de: [https://datos.madrid.es](https://datos.madrid.es)
+* **Wikidata.** *Base de conocimiento libre y colaborativa*. Utilizada para el servicio de reconciliación de entidades espaciales (distritos). Recuperado de: [https://www.wikidata.org](https://www.wikidata.org)
+
+**Estándares y Vocabularios (W3C)**
+* **W3C (2014).** *RDF 1.1 Concepts and Abstract Syntax*. Recuperado de: [https://www.w3.org/TR/rdf11-concepts/](https://www.w3.org/TR/rdf11-concepts/)
+* **W3C (2013).** *SPARQL 1.1 Query Language*. Recuperado de: [https://www.w3.org/TR/sparql11-query/](https://www.w3.org/TR/sparql11-query/)
+* **W3C (2012).** *OWL 2 Web Ontology Language*. Recuperado de: [https://www.w3.org/TR/owl2-overview/](https://www.w3.org/TR/owl2-overview/)
+* **W3C (2014).** *Data Catalog Vocabulary (DCAT)*. Recuperado de: [https://www.w3.org/TR/vocab-dcat/](https://www.w3.org/TR/vocab-dcat/)
+* **W3C (2011).** *Describing Linked Datasets with the VoID Vocabulary*. Recuperado de: [https://www.w3.org/TR/void/](https://www.w3.org/TR/void/)
+
+**Herramientas y Software**
+* **OpenRefine (v3.10) & Comunidad.** Herramienta de limpieza y transformación de datos. Documentación oficial disponible en: [https://openrefine.org/](https://openrefine.org/)
+* **AtesComp / RDF Transform.** Extensión para la exportación de grafos RDF desde OpenRefine. Repositorio: [https://github.com/AtesComp/rdf-transform](https://github.com/AtesComp/rdf-transform)
+* **Apache Software Foundation.** *Apache Jena Fuseki*. Servidor Triplestore y endpoint SPARQL. Recuperado de: [https://jena.apache.org/documentation/fuseki2/](https://jena.apache.org/documentation/fuseki2/)
+
+**Referencias Académicas**
+* Material docente, guías prácticas y diapositivas de la asignatura *"Web Semántica y Datos Enlazados"* (Curso 2025-2026).

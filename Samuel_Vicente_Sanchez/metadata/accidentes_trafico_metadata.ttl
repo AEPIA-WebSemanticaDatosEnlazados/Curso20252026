@@ -1,0 +1,17 @@
+@prefix void: <http://rdfs.org/ns/void#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix : <http://madrid.accidentes.linkeddata.es/metadata#> .
+
+:AccidentesMadrid2024 a void:Dataset, dcat:Dataset ;
+    dcterms:title "Accidentes de Tráfico en la Ciudad de Madrid (2024) - Linked Data" ;
+    dcterms:description "Dataset de accidentes de tráfico transformado a RDF con enlaces a Wikidata." ;
+    dcterms:publisher <http://madrid.accidentes.linkeddata.es/resource/Samue> ;
+    dcterms:issued "2024-05-20"^^xsd:date ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
+    void:sparqlEndpoint <http://localhost:3030/accidentes_madrid/query> ;
+    void:triples "103490"^^xsd:integer ;
+    void:vocabulary <http://madrid.accidentes.linkeddata.es/ontology#> ;
+    void:exampleResource <http://madrid.accidentes.linkeddata.es/resource/Accidente/2024S000001> ;
+    dcat:keyword "madrid", "accidentes", "tráfico", "seguridad vial" .
