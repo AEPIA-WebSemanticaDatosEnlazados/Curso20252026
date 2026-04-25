@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Accidentes Madrid Linked Data</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              display: ["Space Grotesk", "sans-serif"],
+              body: ["Public Sans", "sans-serif"]
+            },
+            colors: {
+              ink: "#0f172a",
+              mist: "#f1f5f9",
+              sky: "#0ea5e9",
+              sea: "#155e75",
+              coral: "#fb7185"
+            },
+            boxShadow: {
+              soft: "0 18px 45px -24px rgba(15, 23, 42, 0.35)",
+              card: "0 12px 30px -18px rgba(14, 165, 233, 0.35)"
+            },
+            keyframes: {
+              riseIn: {
+                "0%": { opacity: "0", transform: "translateY(18px)" },
+                "100%": { opacity: "1", transform: "translateY(0)" }
+              }
+            },
+            animation: {
+              riseIn: "riseIn 0.6s ease-out both"
+            }
+          }
+        }
+      };
+    </script>
+
+    <style>
+      :root {
+        --glass: rgba(255, 255, 255, 0.7);
+      }
+
+      body {
+        background:
+          radial-gradient(circle at 10% 0%, rgba(14, 165, 233, 0.18), transparent 40%),
+          radial-gradient(circle at 90% 20%, rgba(251, 113, 133, 0.15), transparent 36%),
+          linear-gradient(145deg, #eff6ff 0%, #f8fafc 45%, #eef2ff 100%);
+      }
+
+      .glass {
+        background: var(--glass);
+        backdrop-filter: blur(10px);
+      }
+
+      .page {
+        display: none;
+      }
+
+      .page.active {
+        display: block;
+      }
+    </style>
+  </head>
+
+  <body class="min-h-screen font-body text-ink">
+    <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+      <header class="mb-8 animate-riseIn">
+        <div class="rounded-3xl border border-white/60 glass p-6 shadow-soft">
+          <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p class="font-display text-sm uppercase tracking-[0.2em] text-sea/80">Linked Data Dashboard</p>
+              <h1 class="mt-2 font-display text-3xl font-semibold sm:text-4xl">Accidentes de Tráfico en Madrid</h1>
+              <p class="mt-2 text-sm text-slate-600 sm:text-base">
+                Datos consultados en tiempo real desde Apache Jena Fuseki.
+              </p>
+            </div>
+            <div class="rounded-2xl border border-sky/30 bg-sky/10 px-4 py-3 text-sm text-sea">
+              Endpoint: <span class="font-medium">http://localhost:3030/accidentes_madrid/query</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <nav class="mb-6 flex flex-wrap items-center gap-3 animate-riseIn">
+        <button
+          id="tab-dashboard"
+          type="button"
+          class="tab-button rounded-xl bg-ink px-5 py-2.5 font-display text-sm text-white shadow-card transition hover:opacity-90"
+          data-target="dashboard-page"
+        >
+          Dashboard
+        </button>
+        <button
+          id="tab-search"
+          type="button"
+          class="tab-button rounded-xl border border-slate-300 bg-white/70 px-5 py-2.5 font-display text-sm text-slate-700 transition hover:border-slate-400"
+          data-target="search-page"
+        >
+          Buscador
+        </button>
+      </nav>
+
+      <main>
+        <section id="dashboard-page" class="page active animate-riseIn" aria-labelledby="tab-dashboard">
+          <div class="grid gap-6 lg:grid-cols-3">
+            <article class="rounded-3xl border border-white/70 glass p-6 shadow-soft lg:col-span-1">
+              <p class="font-display text-sm uppercase tracking-[0.18em] text-slate-500">Total accidentes</p>
+              <div class="mt-4 min-h-[60px]">
+                <p id="total-loading" class="text-sm text-slate-500">Cargando...</p>
+                <p id="total-accidents" class="hidden font-display text-5xl font-semibold text-ink">0</p>
+              </div>
+              <p id="dashboard-error" class="mt-3 hidden rounded-xl border border-rose-300 bg-rose-50 px-3 py-2 text-sm text-rose-700"></p>
+            </article>
+
+            <article class="rounded-3xl border border-white/70 glass p-6 shadow-soft lg:col-span-2">
+              <div class="mb-4 flex items-center justify-between gap-4">
+                <h2 class="font-display text-xl font-semibold">Top 5 distritos con más accidentes</h2>
+                <button
+                  id="refresh-dashboard"
+                  type="button"
+                  class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 transition hover:border-slate-400"
+                >
+                  Actualizar
+                </button>
+              </div>
+              <p id="chart-loading" class="mb-3 text-sm text-slate-500">Cargando...</p>
+              <div class="h-72">
+                <canvas id="districtChart"></canvas>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section id="search-page" class="page animate-riseIn" aria-labelledby="tab-search">
+          <article class="rounded-3xl border border-white/70 glass p-6 shadow-soft">
+            <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <div>
+                <h2 class="font-display text-2xl font-semibold">Buscador por número de expediente</h2>
+                <p class="mt-1 text-sm text-slate-600">Filtra por texto parcial y consulta fecha, dirección y distrito.</p>
+              </div>
+
+              <form id="search-form" class="flex w-full max-w-xl gap-3" autocomplete="off">
+                <input
+                  id="search-input"
+                  name="expediente"
+                  type="text"
+                  placeholder="Ejemplo: 2024"
+                  class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-sky focus:ring-2 focus:ring-sky/20"
+                />
+                <button
+                  type="submit"
+                  class="rounded-xl bg-sea px-5 py-2.5 font-display text-sm text-white shadow-card transition hover:opacity-90"
+                >
+                  Buscar
+                </button>
+              </form>
+            </div>
+
+            <p id="search-loading" class="mt-4 text-sm text-slate-500">Cargando...</p>
+            <p id="search-error" class="mt-4 hidden rounded-xl border border-rose-300 bg-rose-50 px-3 py-2 text-sm text-rose-700"></p>
+
+            <div class="mt-5 overflow-x-auto rounded-2xl border border-slate-200 bg-white/85">
+              <table class="min-w-full divide-y divide-slate-200 text-sm">
+                <thead class="bg-slate-50/80 text-left font-display text-slate-600">
+                  <tr>
+                    <th scope="col" class="px-4 py-3">Expediente</th>
+                    <th scope="col" class="px-4 py-3">Fecha</th>
+                    <th scope="col" class="px-4 py-3">Dirección</th>
+                    <th scope="col" class="px-4 py-3">Distrito (Wikidata)</th>
+                  </tr>
+                </thead>
+                <tbody id="results-body" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
+
+            <p id="empty-results" class="mt-4 hidden text-sm text-slate-500">No se encontraron resultados para ese expediente.</p>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const SPARQL_ENDPOINT = "http://localhost:3030/accidentes_madrid/query";
+      const ACC_PREFIX = "http://madrid.accidentes.linkeddata.es/ontology#";
+      const WIKIDATA_PREFIX = "https://www.wikidata.org/entity/";
+      const QUERY_TIMEOUT_MS = 12000;
+
+      const dashboardErrorEl = document.getElementById("dashboard-error");
+      const totalLoadingEl = document.getElementById("total-loading");
+      const totalAccidentsEl = document.getElementById("total-accidents");
+      const chartLoadingEl = document.getElementById("chart-loading");
+      const searchLoadingEl = document.getElementById("search-loading");
+      const searchErrorEl = document.getElementById("search-error");
+      const resultsBodyEl = document.getElementById("results-body");
+      const emptyResultsEl = document.getElementById("empty-results");
+
+      const searchFormEl = document.getElementById("search-form");
+      const searchInputEl = document.getElementById("search-input");
+
+      let districtChart;
+
+      function formatDistrictLabel(uri) {
+        if (!uri) {
+          return "Sin distrito";
+        }
+
+        if (uri.startsWith(WIKIDATA_PREFIX)) {
+          return uri.replace(WIKIDATA_PREFIX, "");
+        }
+
+        const fragment = uri.split(/[\/#]/).filter(Boolean).pop();
+        return fragment || uri;
+      }
+
+      function parseDate(value) {
+        if (!value) {
+          return "-";
+        }
+
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+          return value;
+        }
+
+        return date.toLocaleDateString("es-ES");
+      }
+
+      function setDashboardError(message) {
+        dashboardErrorEl.textContent = message;
+        dashboardErrorEl.classList.remove("hidden");
+      }
+
+      function clearDashboardError() {
+        dashboardErrorEl.classList.add("hidden");
+        dashboardErrorEl.textContent = "";
+      }
+
+      function setSearchError(message) {
+        searchErrorEl.textContent = message;
+        searchErrorEl.classList.remove("hidden");
+      }
+
+      function clearSearchError() {
+        searchErrorEl.classList.add("hidden");
+        searchErrorEl.textContent = "";
+      }
+
+      function showLoading(element, isLoading) {
+        element.classList.toggle("hidden", !isLoading);
+      }
+
+      async function runSparqlQuery(query) {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), QUERY_TIMEOUT_MS);
+
+        const params = new URLSearchParams({
+          query
+        });
+
+        try {
+          const response = await fetch(`${SPARQL_ENDPOINT}?${params.toString()}`, {
+            method: "GET",
+            headers: {
+              Accept: "application/sparql-results+json"
+            },
+            signal: controller.signal
+          });
+
+          if (!response.ok) {
+            throw new Error(`Error HTTP ${response.status}: ${response.statusText}`);
+          }
+
+          return await response.json();
+        } catch (error) {
+          if (error.name === "AbortError") {
+            throw new Error("Tiempo de espera agotado al consultar Fuseki.");
+          }
+          throw new Error(`No se pudo conectar con Fuseki: ${error.message}`);
+        } finally {
+          clearTimeout(timeout);
+        }
+      }
+
+      function renderDistrictChart(labels, data) {
+        const ctx = document.getElementById("districtChart");
+
+        if (districtChart) {
+          districtChart.destroy();
+        }
+
+        districtChart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [
+              {
+                label: "Accidentes",
+                data,
+                backgroundColor: ["#0284c7", "#0ea5e9", "#38bdf8", "#7dd3fc", "#bae6fd"],
+                borderRadius: 8,
+                maxBarThickness: 44
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false
+              }
+            },
+            scales: {
+              x: {
+                ticks: {
+                  color: "#334155"
+                },
+                grid: {
+                  display: false
+                }
+              },
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  color: "#334155"
+                },
+                grid: {
+                  color: "rgba(51, 65, 85, 0.15)"
+                }
+              }
+            }
+          }
+        });
+      }
+
+      async function loadDashboardData() {
+        clearDashboardError();
+        showLoading(totalLoadingEl, true);
+        showLoading(chartLoadingEl, true);
+        totalAccidentsEl.classList.add("hidden");
+
+        const totalQuery = `
+          PREFIX acc: <${ACC_PREFIX}>
+          SELECT (COUNT(?accidente) AS ?total)
+          WHERE {
+            ?accidente a acc:Accidente .
+          }
+        `;
+
+        const topDistrictsQuery = `
+          PREFIX acc: <${ACC_PREFIX}>
+          SELECT ?distrito (COUNT(?accidente) AS ?total)
+          WHERE {
+            ?accidente a acc:Accidente ;
+                       acc:ocurrioEnDistrito ?distrito .
+          }
+          GROUP BY ?distrito
+          ORDER BY DESC(?total)
+          LIMIT 5
+        `;
+
+        try {
+          const [totalResult, districtsResult] = await Promise.all([
+            runSparqlQuery(totalQuery),
+            runSparqlQuery(topDistrictsQuery)
+          ]);
+
+          const total = totalResult?.results?.bindings?.[0]?.total?.value || "0";
+          totalAccidentsEl.textContent = Number(total).toLocaleString("es-ES");
+          totalAccidentsEl.classList.remove("hidden");
+
+          const districtBindings = districtsResult?.results?.bindings || [];
+          const labels = districtBindings.map((row) => formatDistrictLabel(row.distrito?.value));
+          const values = districtBindings.map((row) => Number(row.total?.value || 0));
+
+          renderDistrictChart(labels, values);
+        } catch (error) {
+          setDashboardError(error.message);
+        } finally {
+          showLoading(totalLoadingEl, false);
+          showLoading(chartLoadingEl, false);
+        }
+      }
+
+      function escapeSparqlString(value) {
+        return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+      }
+
+      function renderSearchRows(bindings) {
+        resultsBodyEl.innerHTML = "";
+
+        for (const row of bindings) {
+          const expediente = row.numExpediente?.value || "-";
+          const fecha = parseDate(row.fecha?.value);
+          const direccion = row.direccion?.value || "-";
+          const distrito = row.distrito?.value || "";
+
+          const tr = document.createElement("tr");
+
+          const distritoCell = distrito
+            ? `<a href="${distrito}" target="_blank" rel="noopener noreferrer" class="text-sky-700 underline decoration-sky-400 underline-offset-2 hover:text-sea">${formatDistrictLabel(distrito)}</a>`
+            : "-";
+
+          tr.innerHTML = `
+            <td class="px-4 py-3 font-medium text-slate-800">${expediente}</td>
+            <td class="px-4 py-3 text-slate-700">${fecha}</td>
+            <td class="px-4 py-3 text-slate-700">${direccion}</td>
+            <td class="px-4 py-3 text-slate-700">${distritoCell}</td>
+          `;
+
+          resultsBodyEl.appendChild(tr);
+        }
+      }
+
+      async function searchAccidentsByExpediente(rawSearch) {
+        const searchTerm = rawSearch.trim();
+        const escapedTerm = escapeSparqlString(searchTerm);
+
+        clearSearchError();
+        showLoading(searchLoadingEl, true);
+        emptyResultsEl.classList.add("hidden");
+
+        const filterClause = searchTerm
+          ? `FILTER(CONTAINS(LCASE(STR(?numExpediente)), LCASE("${escapedTerm}")))`
+          : "";
+
+        const searchQuery = `
+          PREFIX acc: <${ACC_PREFIX}>
+          SELECT ?numExpediente ?fecha ?direccion ?distrito
+          WHERE {
+            ?accidente a acc:Accidente ;
+                       acc:numExpediente ?numExpediente ;
+                       acc:fechaAccidente ?fecha ;
+                       acc:direccion ?direccion .
+            OPTIONAL { ?accidente acc:ocurrioEnDistrito ?distrito . }
+            ${filterClause}
+          }
+          ORDER BY DESC(?fecha)
+          LIMIT 100
+        `;
+
+        try {
+          const result = await runSparqlQuery(searchQuery);
+          const bindings = result?.results?.bindings || [];
+
+          renderSearchRows(bindings);
+          emptyResultsEl.classList.toggle("hidden", bindings.length > 0);
+        } catch (error) {
+          setSearchError(error.message);
+          resultsBodyEl.innerHTML = "";
+        } finally {
+          showLoading(searchLoadingEl, false);
+        }
+      }
+
+      function setupNavigation() {
+        const tabButtons = Array.from(document.querySelectorAll(".tab-button"));
+        const pages = Array.from(document.querySelectorAll(".page"));
+
+        for (const button of tabButtons) {
+          button.addEventListener("click", () => {
+            const target = button.dataset.target;
+
+            for (const page of pages) {
+              page.classList.toggle("active", page.id === target);
+            }
+
+            for (const tabButton of tabButtons) {
+              const isCurrent = tabButton === button;
+              tabButton.classList.toggle("bg-ink", isCurrent);
+              tabButton.classList.toggle("text-white", isCurrent);
+              tabButton.classList.toggle("border", !isCurrent);
+              tabButton.classList.toggle("border-slate-300", !isCurrent);
+              tabButton.classList.toggle("bg-white/70", !isCurrent);
+              tabButton.classList.toggle("text-slate-700", !isCurrent);
+            }
+          });
+        }
+      }
+
+      document.getElementById("refresh-dashboard").addEventListener("click", loadDashboardData);
+
+      searchFormEl.addEventListener("submit", (event) => {
+        event.preventDefault();
+        searchAccidentsByExpediente(searchInputEl.value);
+      });
+
+      setupNavigation();
+      loadDashboardData();
+      searchAccidentsByExpediente("");
+    </script>
+  </body>
+</html>
