@@ -1,0 +1,642 @@
+[
+  {
+    "op": "core/column-rename",
+    "oldColumnName": "d_denomina,C,254",
+    "newColumnName": "Nombre",
+    "description": "Renombra la columna d_denomina,C,254 a Nombre"
+  },
+  {
+    "op": "core/column-rename",
+    "oldColumnName": "d_categori,C,254",
+    "newColumnName": "Categoria",
+    "description": "Renombra la columna d_categori,C,254 a Categoria"
+  },
+  {
+    "op": "core/column-rename",
+    "oldColumnName": "c_bien_id,N,20,0",
+    "newColumnName": "ID",
+    "description": "Renombra la columna c_bien_id,N,20,0 a ID"
+  },
+  {
+    "op": "core/column-rename",
+    "oldColumnName": "url_pweb,C,104",
+    "newColumnName": "url",
+    "description": "Renombra la columna url_pweb,C,104 a url"
+  },
+  {
+    "op": "core/column-rename",
+    "oldColumnName": "f_protecci,D",
+    "newColumnName": "fecha_proteccion",
+    "description": "Renombra la columna f_protecci,D a fecha_proteccion"
+  },
+  {
+    "op": "core/column-rename",
+    "oldColumnName": "Categoria",
+    "newColumnName": "categoria",
+    "description": "Renombra la columna Categoria a categoria"
+  },
+  {
+    "op": "core/column-rename",
+    "oldColumnName": "Nombre",
+    "newColumnName": "nombre",
+    "description": "Renombra la columna Nombre a nombre"
+  },
+  {
+    "op": "core/column-removal",
+    "columnName": "fid,N,10,0",
+    "description": "Eliminar columna fid,N,10,0"
+  },
+  {
+    "op": "core/mass-edit",
+    "engineConfig": {
+      "facets": [],
+      "mode": "row-based"
+    },
+    "columnName": "categoria",
+    "expression": "value",
+    "edits": [
+      {
+        "from": [
+          "CONJUNTO ETNOL├ôGICO"
+        ],
+        "fromBlank": false,
+        "fromError": false,
+        "to": "CONJUNTO ETNOLÓGICO"
+      }
+    ],
+    "description": "Editar celdas en masa en columna categoria"
+  },
+  {
+    "op": "core/mass-edit",
+    "engineConfig": {
+      "facets": [],
+      "mode": "row-based"
+    },
+    "columnName": "categoria",
+    "expression": "value",
+    "edits": [
+      {
+        "from": [
+          "CONJUNTO HIST├ôRICO"
+        ],
+        "fromBlank": false,
+        "fromError": false,
+        "to": "CONJUNTO HISTÓRICO"
+      }
+    ],
+    "description": "Editar celdas en masa en columna categoria"
+  },
+  {
+    "op": "core/mass-edit",
+    "engineConfig": {
+      "facets": [],
+      "mode": "row-based"
+    },
+    "columnName": "categoria",
+    "expression": "value",
+    "edits": [
+      {
+        "from": [
+          "H├ôRREOS Y PALLOZAS"
+        ],
+        "fromBlank": false,
+        "fromError": false,
+        "to": "HÓRREOS Y PALLOZAS"
+      }
+    ],
+    "description": "Editar celdas en masa en columna categoria"
+  },
+  {
+    "op": "core/mass-edit",
+    "engineConfig": {
+      "facets": [],
+      "mode": "row-based"
+    },
+    "columnName": "categoria",
+    "expression": "value",
+    "edits": [
+      {
+        "from": [
+          "JARD├ìN HIST├ôRICO"
+        ],
+        "fromBlank": false,
+        "fromError": false,
+        "to": "JARDÍN HISTÓRICO"
+      }
+    ],
+    "description": "Editar celdas en masa en columna categoria"
+  },
+  {
+    "op": "core/mass-edit",
+    "engineConfig": {
+      "facets": [],
+      "mode": "row-based"
+    },
+    "columnName": "categoria",
+    "expression": "value",
+    "edits": [
+      {
+        "from": [
+          "SITIO HIST├ôRICO"
+        ],
+        "fromBlank": false,
+        "fromError": false,
+        "to": "SITIO HISTÓRICO"
+      }
+    ],
+    "description": "Editar celdas en masa en columna categoria"
+  },
+  {
+    "op": "core/mass-edit",
+    "engineConfig": {
+      "facets": [],
+      "mode": "row-based"
+    },
+    "columnName": "categoria",
+    "expression": "value",
+    "edits": [
+      {
+        "from": [
+          "ZONA ARQUEOL├ôGICA"
+        ],
+        "fromBlank": false,
+        "fromError": false,
+        "to": "ZONA ARQUEOLÓGICA"
+      }
+    ],
+    "description": "Editar celdas en masa en columna categoria"
+  },
+  {
+    "op": "core/text-transform",
+    "engineConfig": {
+      "facets": [],
+      "mode": "row-based"
+    },
+    "columnName": "nombre",
+    "expression": "grel:value.replace('├æ', 'Ñ').replace('├▒', 'ñ').replace('├ü', 'Á').replace('├í', 'á').replace('├ë', 'É').replace('├⌐', 'é').replace('├ì', 'Í').replace('├¡', 'í').replace('├ô', 'Ó').replace('├│', 'ó').replace('├Ü', 'Ú').replace('├║', 'ú').replace('├£', 'Ü').replace('├╝', 'ü')",
+    "onError": "keep-original",
+    "repeat": false,
+    "repeatCount": 10,
+    "description": "Transforma el texto de las celdas en la columna nombre usando la expresión grel:value.replace('├æ', 'Ñ').replace('├▒', 'ñ').replace('├ü', 'Á').replace('├í', 'á').replace('├ë', 'É').replace('├⌐', 'é').replace('├ì', 'Í').replace('├¡', 'í').replace('├ô', 'Ó').replace('├│', 'ó').replace('├Ü', 'Ú').replace('├║', 'ú').replace('├£', 'Ü').replace('├╝', 'ü')"
+  },
+  {
+    "op": "core/text-transform",
+    "engineConfig": {
+      "facets": [],
+      "mode": "row-based"
+    },
+    "columnName": "categoria",
+    "expression": "value.toTitlecase()",
+    "onError": "keep-original",
+    "repeat": false,
+    "repeatCount": 10,
+    "description": "Transforma el texto de las celdas en la columna categoria usando la expresión value.toTitlecase()"
+  },
+  {
+    "op": "core/column-addition-by-fetching-urls",
+    "engineConfig": {
+      "facets": [
+        {
+          "type": "timerange",
+          "name": "fecha_proteccion",
+          "expression": "value",
+          "columnName": "fecha_proteccion",
+          "from": -749865600000,
+          "to": 1,
+          "selectTime": true,
+          "selectNonTime": true,
+          "selectBlank": true,
+          "selectError": true
+        }
+      ],
+      "mode": "row-based"
+    },
+    "baseColumnName": "url",
+    "urlExpression": "grel:value",
+    "onError": "set-to-blank",
+    "newColumnName": "html_content",
+    "columnInsertIndex": 6,
+    "delay": 1000,
+    "cacheResponses": true,
+    "httpHeadersJson": [
+      {
+        "name": "authorization",
+        "value": ""
+      },
+      {
+        "name": "if-modified-since",
+        "value": ""
+      },
+      {
+        "name": "accept-language",
+        "value": ""
+      },
+      {
+        "name": "accept-encoding",
+        "value": ""
+      },
+      {
+        "name": "user-agent",
+        "value": "OpenRefine 3.9.5 [TRUNK]"
+      },
+      {
+        "name": "accept",
+        "value": "*/*"
+      },
+      {
+        "name": "accept-charset",
+        "value": ""
+      }
+    ],
+    "description": "Crear la columna html_content en el índice 6 mediante la obtención de URLs basadas en la columna url utilizando la expresión grel:value"
+  },
+  {
+    "op": "core/column-addition",
+    "engineConfig": {
+      "facets": [],
+      "mode": "row-based"
+    },
+    "baseColumnName": "html_content",
+    "expression": "grel:value.parseHtml().select(\"fieldset:contains(Datos Declaraci) span.datoBienExpe\")[0].ownText().trim()",
+    "onError": "set-to-blank",
+    "newColumnName": "fecha_declaracion_web",
+    "columnInsertIndex": 7,
+    "description": "Crear la columna fecha_declaracion_web en el índice 7 basada en la columna html_content usando la expresión grel:value.parseHtml().select(\"fieldset:contains(Datos Declaraci) span.datoBienExpe\")[0].ownText().trim()"
+  },
+  {
+    "op": "core/column-move",
+    "columnName": "fecha_declaracion_web",
+    "index": 6,
+    "description": "Mueve la columna fecha_declaracion_web a la posición 6"
+  },
+  {
+    "op": "core/column-move",
+    "columnName": "fecha_declaracion_web",
+    "index": 5,
+    "description": "Mueve la columna fecha_declaracion_web a la posición 5"
+  },
+  {
+    "op": "core/text-transform",
+    "engineConfig": {
+      "facets": [],
+      "mode": "row-based"
+    },
+    "columnName": "fecha_declaracion_web",
+    "expression": "value.toDate()",
+    "onError": "keep-original",
+    "repeat": false,
+    "repeatCount": 10,
+    "description": "Transforma el texto de las celdas en la columna fecha_declaracion_web usando la expresión value.toDate()"
+  },
+  {
+    "op": "core/column-addition",
+    "engineConfig": {
+      "facets": [],
+      "mode": "row-based"
+    },
+    "baseColumnName": "nombre",
+    "expression": "grel:if(value.match(/^[0-9-]+\\s.+/), value.split(\" \")[0], null)",
+    "onError": "set-to-blank",
+    "newColumnName": "codigo_arqueologico",
+    "columnInsertIndex": 2,
+    "description": "Crear la columna codigo_arqueologico en el índice 2 basada en la columna nombre usando la expresión grel:if(value.match(/^[0-9-]+\\s.+/), value.split(\" \")[0], null)"
+  },
+  {
+    "op": "core/text-transform",
+    "engineConfig": {
+      "facets": [],
+      "mode": "row-based"
+    },
+    "columnName": "nombre",
+    "expression": "grel:value.replace(/^[0-9-]+\\s+/, \"\")",
+    "onError": "keep-original",
+    "repeat": false,
+    "repeatCount": 10,
+    "description": "Transforma el texto de las celdas en la columna nombre usando la expresión grel:value.replace(/^[0-9-]+\\s+/, \"\")"
+  },
+  {
+    "op": "core/recon",
+    "engineConfig": {
+      "facets": [],
+      "mode": "row-based"
+    },
+    "columnName": "nombre",
+    "config": {
+      "mode": "standard-service",
+      "service": "https://wikidata.reconci.link/en/api",
+      "identifierSpace": "http://www.wikidata.org/entity/",
+      "schemaSpace": "http://www.wikidata.org/prop/direct/",
+      "autoMatch": true,
+      "batchSize": 10,
+      "columnDetails": [],
+      "limit": 0
+    },
+    "description": "Reconcile cells in column nombre to type null"
+  },
+  {
+    "op": "core/recon-match-best-candidates",
+    "engineConfig": {
+      "facets": [],
+      "mode": "row-based"
+    },
+    "columnName": "nombre",
+    "description": "Emparejar cada celda con su mejor candidato de cotejo en la columna nombre"
+  },
+  {
+    "op": "core/extend-reconciled-data",
+    "engineConfig": {
+      "facets": [],
+      "mode": "row-based"
+    },
+    "baseColumnName": "nombre",
+    "endpoint": "https://wikidata.reconci.link/en/api",
+    "identifierSpace": "http://www.wikidata.org/entity/",
+    "schemaSpace": "http://www.wikidata.org/prop/direct/",
+    "extension": {
+      "properties": [
+        {
+          "id": "P625",
+          "name": null
+        },
+        {
+          "id": "P18",
+          "name": null
+        }
+      ]
+    },
+    "columnInsertIndex": 2,
+    "description": "Extender datos en el índice 2 basado en la columna nombre"
+  },
+  {
+    "op": "core/column-removal",
+    "columnName": "c_categori,N,24,15",
+    "description": "Eliminar columna c_categori,N,24,15"
+  },
+  {
+    "op": "rdf-extension/save-rdf-schema",
+    "schema": {
+      "prefixes": [
+        {
+          "name": "geo",
+          "uri": "http://www.w3.org/2003/01/geo/wgs84_pos#"
+        },
+        {
+          "name": "rdf",
+          "uri": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        },
+        {
+          "name": "owl",
+          "uri": "http://www.w3.org/2002/07/owl#"
+        },
+        {
+          "name": "dcterms",
+          "uri": "http://purl.org/dc/terms/"
+        },
+        {
+          "name": "rdfs",
+          "uri": "http://www.w3.org/2000/01/rdf-schema#"
+        },
+        {
+          "name": "foaf",
+          "uri": "http://xmlns.com/foaf/0.1/"
+        }
+      ],
+      "baseUri": "http://patrimonio.jcyl.es/recurso/",
+      "rootNodes": [
+        {
+          "nodeType": "cell-as-resource",
+          "columnName": "ID",
+          "expression": "\"bic/\" + value",
+          "isRowNumberCell": false,
+          "links": [
+            {
+              "uri": "http://www.w3.org/2000/01/rdf-schema#label",
+              "curie": "rdfs:label",
+              "target": {
+                "nodeType": "cell-as-literal",
+                "columnName": "nombre",
+                "expression": "value",
+                "isRowNumberCell": false
+              }
+            },
+            {
+              "uri": "http://xmlns.com/foaf/0.1/depiction",
+              "curie": "foaf:depiction",
+              "target": {
+                "nodeType": "cell-as-literal",
+                "columnName": "image",
+                "expression": "value",
+                "isRowNumberCell": false
+              }
+            },
+            {
+              "uri": "http://purl.org/dc/terms/identifier",
+              "curie": "dcterms:identifier",
+              "target": {
+                "nodeType": "cell-as-literal",
+                "columnName": "codigo_arqueologico",
+                "expression": "value",
+                "isRowNumberCell": false
+              }
+            },
+            {
+              "uri": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+              "curie": "rdf:type",
+              "target": {
+                "nodeType": "cell-as-literal",
+                "columnName": "categoria",
+                "expression": "value",
+                "isRowNumberCell": false
+              }
+            },
+            {
+              "uri": "http://purl.org/dc/terms/date",
+              "curie": "dcterms:date",
+              "target": {
+                "nodeType": "cell-as-literal",
+                "columnName": "fecha_declaracion_web",
+                "expression": "value",
+                "isRowNumberCell": false
+              }
+            },
+            {
+              "uri": "http://xmlns.com/foaf/0.1/homepage",
+              "curie": "foaf:homepage",
+              "target": {
+                "nodeType": "cell-as-literal",
+                "columnName": "url",
+                "expression": "value",
+                "isRowNumberCell": false
+              }
+            }
+          ],
+          "rdfTypes": []
+        }
+      ]
+    },
+    "description": "Save RDF schema skeleton"
+  },
+  {
+    "op": "core/column-split",
+    "engineConfig": {
+      "facets": [],
+      "mode": "record-based"
+    },
+    "columnName": "coordinate location",
+    "guessCellType": true,
+    "removeOriginalColumn": true,
+    "mode": "separator",
+    "separator": ",",
+    "regex": false,
+    "maxColumns": 0,
+    "description": "Dividir columna coordinate location por separador"
+  },
+  {
+    "op": "core/column-rename",
+    "oldColumnName": "coordinate location 1",
+    "newColumnName": "latitud",
+    "description": "Renombra la columna coordinate location 1 a latitud"
+  },
+  {
+    "op": "core/column-rename",
+    "oldColumnName": "coordinate location 2",
+    "newColumnName": "longitud",
+    "description": "Renombra la columna coordinate location 2 a longitud"
+  },
+  {
+    "op": "rdf-extension/save-rdf-schema",
+    "schema": {
+      "prefixes": [
+        {
+          "name": "geo",
+          "uri": "http://www.w3.org/2003/01/geo/wgs84_pos#"
+        },
+        {
+          "name": "rdf",
+          "uri": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        },
+        {
+          "name": "owl",
+          "uri": "http://www.w3.org/2002/07/owl#"
+        },
+        {
+          "name": "dcterms",
+          "uri": "http://purl.org/dc/terms/"
+        },
+        {
+          "name": "rdfs",
+          "uri": "http://www.w3.org/2000/01/rdf-schema#"
+        },
+        {
+          "name": "foaf",
+          "uri": "http://xmlns.com/foaf/0.1/"
+        }
+      ],
+      "baseUri": "http://patrimonio.jcyl.es/recurso/",
+      "rootNodes": [
+        {
+          "nodeType": "cell-as-resource",
+          "columnName": "ID",
+          "expression": "\"bic/\" + value",
+          "isRowNumberCell": false,
+          "links": [
+            {
+              "uri": "http://www.w3.org/2000/01/rdf-schema#label",
+              "curie": "rdfs:label",
+              "target": {
+                "nodeType": "cell-as-literal",
+                "columnName": "nombre",
+                "expression": "value",
+                "isRowNumberCell": false
+              }
+            },
+            {
+              "uri": "http://xmlns.com/foaf/0.1/depiction",
+              "curie": "foaf:depiction",
+              "target": {
+                "nodeType": "cell-as-literal",
+                "columnName": "image",
+                "expression": "value",
+                "isRowNumberCell": false
+              }
+            },
+            {
+              "uri": "http://purl.org/dc/terms/identifier",
+              "curie": "dcterms:identifier",
+              "target": {
+                "nodeType": "cell-as-literal",
+                "columnName": "codigo_arqueologico",
+                "expression": "value",
+                "isRowNumberCell": false
+              }
+            },
+            {
+              "uri": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+              "curie": "rdf:type",
+              "target": {
+                "nodeType": "cell-as-literal",
+                "columnName": "categoria",
+                "expression": "value",
+                "isRowNumberCell": false
+              }
+            },
+            {
+              "uri": "http://purl.org/dc/terms/date",
+              "curie": "dcterms:date",
+              "target": {
+                "nodeType": "cell-as-literal",
+                "columnName": "fecha_declaracion_web",
+                "expression": "value",
+                "isRowNumberCell": false
+              }
+            },
+            {
+              "uri": "http://xmlns.com/foaf/0.1/homepage",
+              "curie": "foaf:homepage",
+              "target": {
+                "nodeType": "cell-as-literal",
+                "columnName": "url",
+                "expression": "value",
+                "isRowNumberCell": false
+              }
+            },
+            {
+              "uri": "http://www.w3.org/2003/01/geo/wgs84_pos#lat",
+              "curie": "geo:lat",
+              "target": {
+                "nodeType": "cell-as-literal",
+                "columnName": "latitud",
+                "expression": "value",
+                "isRowNumberCell": false
+              }
+            },
+            {
+              "uri": "http://www.w3.org/2003/01/geo/wgs84_pos#long",
+              "curie": "geo:long",
+              "target": {
+                "nodeType": "cell-as-literal",
+                "columnName": "longitud",
+                "expression": "value",
+                "isRowNumberCell": false
+              }
+            },
+            {
+              "uri": "http://www.w3.org/2002/07/owl#sameAs",
+              "curie": "owl:sameAs",
+              "target": {
+                "nodeType": "cell-as-resource",
+                "columnName": "nombre",
+                "expression": "value",
+                "isRowNumberCell": false,
+                "links": [],
+                "rdfTypes": []
+              }
+            }
+          ],
+          "rdfTypes": []
+        }
+      ]
+    },
+    "description": "Save RDF schema skeleton"
+  }
+]
