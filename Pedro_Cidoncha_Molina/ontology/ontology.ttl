@@ -1,0 +1,72 @@
+@prefix : <http://patrimonio.jcyl.es/ontology#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix schema: <http://schema.org/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix geo: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+
+<http://patrimonio.jcyl.es/ontology#> rdf:type owl:Ontology ;
+    dcterms:title "Ontología de Bienes de Interés Cultural de Castilla y León" ;
+    dcterms:description "Vocabulario para la representación semántica de monumentos y patrimonio protegido en la comunidad de Castilla y León." .
+
+#################################################################
+#    Clases
+#################################################################
+
+:Monumento rdf:type owl:Class ;
+    rdfs:subClassOf schema:Place ;
+    rdfs:label "Monumento" ;
+    rdfs:comment "Representa un Bien de Interés Cultural registrado en el catálogo de patrimonio." .
+
+:Categoria rdf:type owl:Class ;
+    rdfs:label "Categoría del Bien" ;
+    rdfs:comment "Tipo o clasificación del monumento (ej. Castillo, Iglesia, Yacimiento)." .
+
+#################################################################
+#    Object Properties
+#################################################################
+
+:tieneCategoria rdf:type owl:ObjectProperty ;
+    rdfs:domain :Monumento ;
+    rdfs:range :Categoria ;
+    rdfs:label "tiene categoría" .
+
+:enlaceWikidata rdf:type owl:ObjectProperty ;
+    rdfs:subPropertyOf <http://www.w3.org/2002/07/owl#sameAs> ;
+    rdfs:domain :Monumento ;
+    rdfs:label "enlace a Wikidata" .
+
+#################################################################
+#    Data Properties
+#################################################################
+
+:nombreMonumento rdf:type owl:DatatypeProperty ;
+    rdfs:subPropertyOf rdfs:label ;
+    rdfs:domain :Monumento ;
+    rdfs:range xsd:string ;
+    rdfs:label "nombre del monumento" .
+
+:fechaDeclaracion rdf:type owl:DatatypeProperty ;
+    rdfs:subPropertyOf dcterms:date ;
+    rdfs:domain :Monumento ;
+    rdfs:range xsd:date ;
+    rdfs:label "fecha de declaración BIC" .
+
+:latitud rdf:type owl:DatatypeProperty ;
+    rdfs:subPropertyOf geo:lat ;
+    rdfs:domain :Monumento ;
+    rdfs:range xsd:float .
+
+:longitud rdf:type owl:DatatypeProperty ;
+    rdfs:subPropertyOf geo:long ;
+    rdfs:domain :Monumento ;
+    rdfs:range xsd:float .
+
+:fuenteOficial rdf:type owl:DatatypeProperty ;
+    rdfs:subPropertyOf foaf:homepage ;
+    rdfs:domain :Monumento ;
+    rdfs:range xsd:anyURI ;
+    rdfs:label "fuente oficial de datos" .

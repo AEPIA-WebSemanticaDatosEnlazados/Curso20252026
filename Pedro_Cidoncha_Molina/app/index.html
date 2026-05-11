@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de Patrimonio - Castilla y León</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="spain-communities.js"></script>
+
+    <style>
+        body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        #mapa { height: 100vh; width: 100%; } 
+        
+        .cursor-dibujo { cursor: crosshair !important; }
+        
+        .popup-foto { width: 100%; max-height: 150px; object-fit: cover; border-radius: 4px; margin-bottom: 8px; }
+        .popup-titulo { font-weight: bold; font-size: 14px; color: #333; margin-bottom: 5px;}
+
+        #panel-izquierdo {
+            position: absolute; top: 30px; left: 10px; z-index: 1000;
+            display: flex; flex-direction: column; gap: 15px; 
+            width: 280px; max-height: calc(100vh - 30px);
+            pointer-events: none; 
+            overflow-y: auto; 
+        }
+        #panel-izquierdo::-webkit-scrollbar { display: none; }
+        
+        .caja-panel {
+            background: white; padding: 15px; border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            pointer-events: auto; 
+            position: relative; 
+        }
+
+        h3 { margin: 0 0 10px 0; font-size: 15px; color: #333; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+
+        .btn-accion {
+            padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; font-weight: bold;
+            cursor: pointer; background: white; transition: 0.2s;
+        }
+        .btn-accion:hover { background: #f0f0f0; }
+        .btn-activo { background: #B31B1B; color: white; border-color: #800000; }
+        .btn-activo:hover { background: #800000; }
+
+        #input-buscador { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; box-sizing: border-box;}
+        #sugerencias {
+            position: absolute; top: 100%; left: 0; width: 100%; background: white;
+            border-radius: 0 0 8px 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            max-height: 200px; overflow-y: auto; display: none; margin-top: 2px; z-index: 1001;
+        }
+        .sugerencia-item { padding: 10px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #eee; }
+        .sugerencia-item:hover { background: #f0f0f0; }
+
+        #contenedor-filtros { max-height: 150px; overflow-y: auto; }
+        .filtro-opcion { display: block; margin-bottom: 6px; font-size: 13px; cursor: pointer; color: #444; }
+        .filtro-opcion input { margin-right: 8px; cursor: pointer; }
+
+        #total-monumentos { text-align: center; font-size: 13px; color: #555; margin-bottom: 10px; font-weight: bold;}
+        .contenedor-canvas { height: 160px; width: 100%; position: relative; } 
+        #leyenda-grafico { margin-top: 15px; }
+        .leyenda-item { display: flex; align-items: center; justify-content: space-between; font-size: 12px; margin-bottom: 5px; }
+        .leyenda-color { width: 12px; height: 12px; display: inline-block; margin-right: 8px; border-radius: 2px; flex-shrink: 0;}
+        .leyenda-texto { flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 10px; }
+        .leyenda-valor { font-weight: bold; color: #333; }
+    </style>
+</head>
+<body>
+
+    <div id="panel-izquierdo">
+        
+        <div class="caja-panel" style="padding: 10px;">
+            <label style="font-size: 13px; font-weight: bold; color: #555; display: block; margin-bottom: 8px;">📍 Filtro Espacial:</label>
+            <div style="display: flex; gap: 5px;">
+                <button id="btn-dibujar" class="btn-accion" style="flex: 1;">📐 Seleccionar zona</button>
+                <button id="btn-borrar-dibujo" class="btn-accion" style="opacity: 0.5;" disabled title="Borrar zona">❌</button>
+            </div>
+            <p id="texto-ayuda-dibujo" style="font-size: 11px; color: #B31B1B; font-weight: bold; margin: 8px 0 0 0; display: none;">
+                Haz clic y arrastra sobre el mapa.
+            </p>
+        </div>
+
+        <div class="caja-panel" id="caja-buscador" style="padding: 10px;">
+            <input type="text" id="input-buscador" placeholder="Buscar monumento..." autocomplete="off">
+            <div id="sugerencias"></div>
+        </div>
+
+        <div class="caja-panel">
+            <h3>Categorías</h3>
+            <div id="contenedor-filtros">Cargando...</div>
+        </div>
+
+        <div class="caja-panel" style="flex-grow: 1; display: flex; flex-direction: column;">
+            <h3>Distribución Visual</h3>
+            <div id="total-monumentos">Calculando...</div>
+            <div class="contenedor-canvas">
+                <canvas id="graficoCategorias"></canvas>
+            </div>
+            <div id="leyenda-grafico"></div>
+        </div>
+
+    </div>
+
+    <div id="mapa"></div>
+
+    <script>
+        const map = L.map('mapa', { zoomControl: false }).setView([41.652, -4.724], 7);
+        L.control.zoom({ position: 'topright' }).addTo(map);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors | TFM Web Semántica'
+        }).addTo(map);
+
+        if (typeof datosFrontera !== 'undefined') {
+            const castillaLeon = {
+                type: "FeatureCollection",
+                features: datosFrontera.features.filter(
+                    f => f.properties.name === "Castilla y León" || f.properties.name === "Castilla-Leon"
+                )
+            };
+            L.geoJSON(castillaLeon, {
+                smoothFactor: 2,
+                style: { color: "#800000", weight: 4, opacity: 1, fillColor: "#B31B1B", fillOpacity: 0.03 }
+            }).addTo(map);
+        }
+        
+        // La query de SPARQL que vamos a lanzar a Fuseki para obtener los monumentos con sus coordenadas, fotos, categorías y enlaces relacionados. 
+        const endpointUrl = 'http://localhost:3030/bic_cyl/query'; 
+        const sparqlQuery = `
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX geo: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+            PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+            PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX dc: <http://purl.org/dc/terms/>
+            PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+            SELECT DISTINCT ?nombre ?latitud ?longitud ?enlaceFoto ?tipo ?fecha ?enlaceFuente ?enlaceWikidata
+            WHERE {
+              ?monumento rdfs:label ?nombre .
+              ?monumento geo:lat ?latitud .
+              ?monumento geo:long ?longitud .
+              
+              OPTIONAL { ?monumento rdf:type ?tipo . }
+              OPTIONAL { ?monumento dc:date ?fecha . }
+              OPTIONAL { ?monumento foaf:homepage ?enlaceFuente . }
+              OPTIONAL { ?monumento owl:sameAs ?enlaceWikidata . }
+              OPTIONAL { 
+                ?monumento foaf:depiction ?nombreFoto .
+                BIND(CONCAT("https://commons.wikimedia.org/wiki/Special:FilePath/", ENCODE_FOR_URI(STR(?nombreFoto))) AS ?enlaceFoto)
+              }
+              
+              FILTER (xsd:float(?latitud) > 40.05 && xsd:float(?latitud) < 43.30 && xsd:float(?longitud) > -7.25 && xsd:float(?longitud) < -1.70)
+              FILTER (!(xsd:float(?latitud) < 41.02 && xsd:float(?longitud) > -3.95 && xsd:float(?longitud) < -3.00))
+              FILTER (!(xsd:float(?latitud) < 40.74 && xsd:float(?longitud) > -4.15 && xsd:float(?longitud) < -3.85))
+              FILTER (!(xsd:float(?latitud) < 41.25 && xsd:float(?longitud) > -2.90 && xsd:float(?longitud) < -2.70))
+              FILTER (!(xsd:float(?latitud) < 41.40 && xsd:float(?longitud) > -2.00 && xsd:float(?longitud) < -1.70))
+              FILTER (!(xsd:float(?latitud) > 42.15 && xsd:float(?latitud) < 42.60 && xsd:float(?longitud) > -3.05 && xsd:float(?longitud) < -1.70))
+              FILTER (!(xsd:float(?latitud) > 42.75 && xsd:float(?latitud) < 43.30 && xsd:float(?longitud) > -3.05 && xsd:float(?longitud) < -1.70))
+              FILTER (!(xsd:float(?latitud) > 43.00 && xsd:float(?longitud) > -4.10 && xsd:float(?longitud) < -3.85))
+              FILTER (!(xsd:float(?latitud) > 43.10 && xsd:float(?longitud) > -3.85 && xsd:float(?longitud) < -3.40))
+            }
+            LIMIT 1000
+        `;
+
+        let todosLosMonumentos = []; 
+        let grupoMarcadores = L.layerGroup().addTo(map);
+        let graficoTarta = null; 
+        
+        let textoBusquedaActual = "";
+        let categoriasSeleccionadas = new Set(); 
+        let rectanguloFiltroBounds = null; // Para las coordenadas del cuadrado dibujado
+        const paletaColores = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#8AC926', '#1982C4', '#F15BB5', '#00BBF9'];
+
+        // Función de filtrado
+        function aplicarFiltros() {
+            let filtrados = todosLosMonumentos;
+
+            // Filtro de zona del mapa
+            if (rectanguloFiltroBounds) {
+                filtrados = filtrados.filter(m => {
+                    const lat = parseFloat(m.latitud.value);
+                    const lon = parseFloat(m.longitud.value);
+                    // Leaflet tiene una función nativa mágica que comprueba si unas coordenadas están dentro de un rectángulo
+                    return rectanguloFiltroBounds.contains([lat, lon]);
+                });
+            }
+
+            // Filtro de barra de búsqueda
+            if (textoBusquedaActual.length > 0) {
+                filtrados = filtrados.filter(m => m.nombre.value.toLowerCase().includes(textoBusquedaActual));
+            }
+
+            // Filtro de categorías
+            if (categoriasSeleccionadas.size > 0) {
+                filtrados = filtrados.filter(m => {
+                    let tipoLimpio = m.tipo ? m.tipo.value.split('/').pop().split('#').pop() : "Sin categoría";
+                    return categoriasSeleccionadas.has(tipoLimpio);
+                });
+            }
+
+            pintarMarcadores(filtrados);
+            actualizarSugerencias(filtrados);
+        }
+
+        async function cargarMonumentos() {
+            try {
+                const response = await fetch(endpointUrl + '?query=' + encodeURIComponent(sparqlQuery), { headers: { 'Accept': 'application/sparql-results+json' } });
+                const data = await response.json();
+                todosLosMonumentos = data.results.bindings;
+
+                generarCheckboxes(todosLosMonumentos);
+                aplicarFiltros(); 
+
+            } catch (error) { console.error("Error al conectar con Fuseki:", error); }
+        }
+
+        function generarCheckboxes(monumentos) {
+            const contenedor = document.getElementById('contenedor-filtros');
+            const tiposSet = new Set();
+            
+            monumentos.forEach(m => {
+                let tipo = m.tipo ? m.tipo.value.split('/').pop().split('#').pop() : "Sin categoría";
+                tiposSet.add(tipo);
+            });
+
+            let html = '';
+            Array.from(tiposSet).sort().forEach(tipo => {
+                html += `<label class="filtro-opcion"><input type="checkbox" value="${tipo}"> ${tipo}</label>`;
+            });
+            contenedor.innerHTML = html;
+
+            contenedor.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                cb.addEventListener('change', function() {
+                    if (this.checked) categoriasSeleccionadas.add(this.value);
+                    else categoriasSeleccionadas.delete(this.value);
+                    aplicarFiltros(); 
+                });
+            });
+        }
+
+        function actualizarGraficoYLeyenda(monumentos) {
+            document.getElementById('total-monumentos').innerHTML = `Total en mapa: <b>${monumentos.length}</b> monumentos`;
+
+            const conteoTipos = {};
+            monumentos.forEach(m => {
+                let tipo = m.tipo ? m.tipo.value.split('/').pop().split('#').pop() : "Sin categoría";
+                conteoTipos[tipo] = (conteoTipos[tipo] || 0) + 1;
+            });
+
+            const etiquetas = Object.keys(conteoTipos).sort((a,b) => conteoTipos[b] - conteoTipos[a]);
+            const valores = etiquetas.map(e => conteoTipos[e]);
+            const colores = etiquetas.map((_, i) => paletaColores[i % paletaColores.length]);
+
+            let leyendaHTML = '';
+            etiquetas.forEach((etiqueta, index) => {
+                leyendaHTML += `
+                    <div class="leyenda-item" title="${etiqueta}">
+                        <span class="leyenda-color" style="background-color: ${colores[index]}"></span>
+                        <span class="leyenda-texto">${etiqueta}</span>
+                        <span class="leyenda-valor">${valores[index]}</span>
+                    </div>`;
+            });
+            document.getElementById('leyenda-grafico').innerHTML = leyendaHTML;
+
+            const ctx = document.getElementById('graficoCategorias').getContext('2d');
+            if (graficoTarta) { graficoTarta.destroy(); }
+
+            graficoTarta = new Chart(ctx, {
+                type: 'doughnut', 
+                data: { labels: etiquetas, datasets: [{ data: valores, backgroundColor: colores, borderWidth: 1 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '50%' }
+            });
+        }
+
+        function pintarMarcadores(monumentos) {
+            grupoMarcadores.clearLayers(); 
+
+            monumentos.forEach(monumento => {
+                const lat = parseFloat(monumento.latitud.value);
+                const lon = parseFloat(monumento.longitud.value);
+                const nombre = monumento.nombre.value;
+                const fotoUrl = monumento.enlaceFoto ? monumento.enlaceFoto.value : null;
+                
+                let fechaLimpia = "Sin fecha";
+                if (monumento.fecha) { fechaLimpia = monumento.fecha.value.split('T')[0]; }
+
+                let wikiLink = `https://es.wikipedia.org/wiki/Especial:Buscar?search=${encodeURIComponent(nombre)}`;
+                if (monumento.enlaceWikidata && monumento.enlaceWikidata.value.includes('wikidata.org')) {
+                    wikiLink = monumento.enlaceWikidata.value;
+                }
+                const fuenteLink = monumento.enlaceFuente ? monumento.enlaceFuente.value : null;
+
+                if (!isNaN(lat) && !isNaN(lon)) {
+                    let popupHTML = `
+                        <div style="width: 220px; font-family: sans-serif;">
+                            <div class="popup-titulo" style="font-size: 16px; margin-bottom: 10px;">${nombre}</div>`;
+                    if (fotoUrl) { popupHTML += `<img src="${fotoUrl}" class="popup-foto" style="width:100%; border-radius:8px;">`; }
+
+                    popupHTML += `
+                            <p style="font-size: 13px; color: #444; margin: 10px 0;">📅 <b>Declaración:</b> ${fechaLimpia}</p>
+                            <div style="display: flex; gap: 5px; margin-top: 10px;">
+                                <a href="${wikiLink}" target="_blank" style="flex: 1; background: #3366cc; color: white; text-align: center; padding: 6px; border-radius: 4px; text-decoration: none; font-size: 11px; font-weight: bold;">Wikipedia</a>`;
+
+                    if (fuenteLink && !fuenteLink.includes('patrimonio.jcyl.es')) {
+                        popupHTML += `<a href="${fuenteLink}" target="_blank" style="flex: 1; background: #B31B1B; color: white; text-align: center; padding: 6px; border-radius: 4px; text-decoration: none; font-size: 11px; font-weight: bold;">Fuente</a>`;
+                    }
+                    popupHTML += `</div></div>`;
+                    
+                    L.marker([lat, lon]).addTo(grupoMarcadores).bindPopup(popupHTML);
+                }
+            });
+            actualizarGraficoYLeyenda(monumentos);
+        }
+
+        const btnDibujar = document.getElementById('btn-dibujar');
+        const btnBorrarDibujo = document.getElementById('btn-borrar-dibujo');
+        const textoAyuda = document.getElementById('texto-ayuda-dibujo');
+        const mapContainer = document.getElementById('mapa');
+
+        let isDrawing = false;
+        let startPoint = null;
+        let rectanguloCapa = null;
+
+        // Evento al pulsar el botón de dibujar zona
+        btnDibujar.addEventListener('click', () => {
+            isDrawing = true;
+            btnDibujar.classList.add('btn-activo');
+            textoAyuda.style.display = 'block';
+            
+            // Bloqueamos que el mapa se mueva al arrastrar
+            map.dragging.disable(); 
+            mapContainer.classList.add('cursor-dibujo');
+
+            // Si ya había un cuadrado, lo borramos para pintar uno nuevo
+            if (rectanguloCapa) { map.removeLayer(rectanguloCapa); rectanguloCapa = null; }
+        });
+
+        // Evento al iniciar el dibujo de la zona
+        map.on('mousedown', (e) => {
+            if (!isDrawing) return;
+            startPoint = e.latlng;
+            // Creamos un rectángulo invisible inicial
+            rectanguloCapa = L.rectangle([startPoint, startPoint], {
+                color: "#B31B1B", weight: 2, fillOpacity: 0.1, dashArray: "5, 5"
+            }).addTo(map);
+        });
+
+        // Evento al arrastrar el ratón
+        map.on('mousemove', (e) => {
+            if (!isDrawing || !startPoint || !rectanguloCapa) return;
+            // Actualizamos las esquinas del rectángulo
+            rectanguloCapa.setBounds([startPoint, e.latlng]);
+        });
+
+        // Evento al soltar el ratón
+        map.on('mouseup', (e) => {
+            if (!isDrawing || !startPoint) return;
+            
+            isDrawing = false;
+            startPoint = null;
+            btnDibujar.classList.remove('btn-activo');
+            textoAyuda.style.display = 'none';
+            
+            // Restauramos el control normal del mapa
+            map.dragging.enable();
+            mapContainer.classList.remove('cursor-dibujo');
+
+            // Habilitamos el botón de borrar
+            btnBorrarDibujo.disabled = false;
+            btnBorrarDibujo.style.opacity = "1";
+            
+            // Cogemos las coordenadas matemáticas del rectángulo que acabamos de dibujar y aplicamos el filtro
+            rectanguloFiltroBounds = rectanguloCapa.getBounds();
+            aplicarFiltros();
+        });
+
+        // Evento al pulsar el botón de borrar filtro de zona
+        btnBorrarDibujo.addEventListener('click', () => {
+            if (rectanguloCapa) map.removeLayer(rectanguloCapa);
+            rectanguloCapa = null;
+            rectanguloFiltroBounds = null;
+            
+            btnBorrarDibujo.disabled = true;
+            btnBorrarDibujo.style.opacity = "0.5";
+            aplicarFiltros();
+        });
+
+
+        // Evento de buscador
+        const inputBuscador = document.getElementById('input-buscador');
+        const cajaSugerencias = document.getElementById('sugerencias');
+
+        inputBuscador.addEventListener('input', function(e) {
+            textoBusquedaActual = e.target.value.toLowerCase();
+            aplicarFiltros(); 
+        });
+
+        function actualizarSugerencias(monumentosFiltrados) {
+            cajaSugerencias.innerHTML = ''; 
+            if (textoBusquedaActual.length < 1) { cajaSugerencias.style.display = 'none'; return; }
+
+            const top5 = monumentosFiltrados.slice(0, 5);
+            if (top5.length > 0) {
+                cajaSugerencias.style.display = 'block';
+                top5.forEach(mon => {
+                    const div = document.createElement('div');
+                    div.className = 'sugerencia-item';
+                    div.textContent = mon.nombre.value;
+                    div.onclick = function() {
+                        inputBuscador.value = mon.nombre.value; 
+                        textoBusquedaActual = mon.nombre.value.toLowerCase();
+                        cajaSugerencias.style.display = 'none'; 
+                        aplicarFiltros(); 
+                        map.flyTo([parseFloat(mon.latitud.value), parseFloat(mon.longitud.value)], 14);
+                    };
+                    cajaSugerencias.appendChild(div);
+                });
+            } else { cajaSugerencias.style.display = 'none'; }
+        }
+
+        document.addEventListener('click', e => {
+            const buscador = document.getElementById('caja-buscador');
+            if (buscador && !buscador.contains(e.target)) cajaSugerencias.style.display = 'none';
+        });
+
+        cargarMonumentos();
+    </script>
+</body>
+</html>
