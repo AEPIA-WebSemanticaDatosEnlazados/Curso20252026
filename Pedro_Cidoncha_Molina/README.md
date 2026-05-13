@@ -1,56 +1,160 @@
 # Transformación de Bienes de Interés Cultural (BIC) de Castilla y León a Linked Data
 
-## 1. Introducción
-El objetivo de este proyecto es la generación de un conjunto de datos enlazados (Linked Data) a partir del registro de Bienes de Interés Cultural (BIC) inmuebles ubicados en la Comunidad Autónoma de Castilla y León.
+**Asignatura:** Web Semántica y Datos Enlazados
 
-La gestión del patrimonio histórico genera una gran cantidad de información que, habitualmente, se encuentra aislada en silos de datos o formatos no interoperables. Mediante la transformación de estos datos a RDF y su publicación siguiendo los principios de Linked Data, se pretende enriquecer la información original enlazándola con fuentes externas como DBpedia y Wikidata, permitiendo así consultas complejas (e.g., "¿Qué monumentos góticos existen en la provincia de Salamanca?") y su explotación mediante aplicaciones de visualización geoespacial.
+**Autor:** Pedro Cidoncha Molina
+
+---
+
+## 1. Introducción
+
+El objetivo fundamental de este proyecto es la generación de un **Grafo de Conocimiento (Knowledge Graph)** interoperable a partir del registro de Bienes de Interés Cultural (BIC) inmuebles de la Comunidad Autónoma de Castilla y León.
+
+La gestión del patrimonio histórico genera habitualmente silos de información en formatos no interoperables. Mediante la aplicación de principios de **Linked Data**, este trabajo transforma datos tabulares y geográficos en un modelo semántico (RDF), enriqueciéndolos con fuentes externas como Wikidata. Esto permite realizar consultas complejas y análisis geoespaciales que superan las capacidades de las bases de datos tradicionales.
 
 ## 2. Proceso de Transformación
 
 ### 2.1. Selección de la fuente de datos
-Para este trabajo se ha seleccionado el conjunto de datos oficial de **"Bienes de Interés Cultural"** proporcionado por el Portal de Datos Abiertos de la Junta de Castilla y León.
 
-* **Origen:** [Datos Abiertos JCyL - Bienes inmuebles de interés cultural](https://datosabiertos.jcyl.es/web/jcyl/set/es/cultura-ocio/bienes-inmuebles/1284872768044)
-* **Responsables del contenido:** 
-   * Dirección General de Vivienda, Arquitectura, Ordenación del Territorio y Urbanismo (Consejería de Medio Ambiente, Vivienda y Ordenación del Territorio).
-    * Dirección General de Patrimonio Cultural (Consejería de Cultura, Turismo y Deporte).
-* **Dataset original:** Bienes de interés cultural (inmuebles).
-* **Cobertura temporal:** 
-    * Inicio de publicación: 1 de octubre de 2012.
-    * Última actualización: 1 de mayo de 2019.
-* **Ámbito geográfico:** Castilla y León (España).
+Se ha seleccionado el conjunto de datos oficial de **"Bienes de Interés Cultural"** del Portal de Datos Abiertos de la Junta de Castilla y León.
 
-### 2.2. Análisis del formato y Preprocesamiento
-El conjunto de datos original se distribuye en formato **ESRI Shapefile (.shp)**, un estándar para Sistemas de Información Geográfica (GIS). El paquete de descarga incluye los siguientes ficheros:
+* **Origen:** [Datos Abiertos JCyL](https://datosabiertos.jcyl.es/web/jcyl/set/es/cultura-ocio/bienes-inmuebles/1284872768044).
+* **Dataset original:** Distribuido originalmente como ESRI Shapefile (.shp / .dbf).
+* **Ámbito:** Castilla y León (España).
 
-* `ps.pacu_cyl_bic_inmu_vw.shp`: Geometría de los objetos.
-* `ps.pacu_cyl_bic_inmu_vw.shx`: Índice de la geometría.
-* `ps.pacu_cyl_bic_inmu_vw.dbf`: Base de datos de atributos (formato dBase).
-* `ps.pacu_cyl_bic_inmu_vw.prj`: Información de la proyección (sistema de coordenadas).
-* `ps.pacu_cyl_bic_inmu_vw.xml`: Metadatos en formato XML.
+### 2.2. Análisis de los datos
 
-**Desafíos de interoperabilidad detectados:**
-Para la transformación semántica, la información relevante reside en el fichero de atributos **.dbf**. Sin embargo, se han encontrado dificultades técnicas para la ingesta directa de este formato en la herramienta OpenRefine.
+Los datos manejados son de naturaleza mixta: alfanuméricos (nombres, fechas, códigos) y geoespaciales (coordenadas). Originalmente, el formato `.dbf` presentaba tipos de datos `String` para etiquetas y `Numeric` para identificadores internos.
 
-**Solución (Preprocesamiento):**
-1. **Conversión de formato:** Para extraer la información en forma de tabla, lo que he hecho es convertir, mediante un conversor online, el fichero `.dbf` a `.csv`.
-2. **Problemas de codificación:** Después de esta conversión he visto que se han generado problemas en algunos caracteres, por ejemplo `CARDE├æA` en lugar de `CARDEÑA`.
-3. **Estrategia de limpieza:** Estos errores de codificación, así como la normalización de fechas y tipos, se corregirán manualmente durante la fase de limpieza en **OpenRefine**, aplicando filtros y transformaciones GREL (Google Refine Expression Language).
+* **Licencia de origen:** Los datos se publican bajo la licencia **IGCYL-NC** (Uso no comercial).
+* **Justificación de licencia resultante:** Para mantener la coherencia con la fuente original y proteger la autoría del enriquecimiento semántico, los datos transformados se publican bajo **CC-BY-NC 4.0**.
 
-### 2.3. Estructura de los datos
-Las columnas principales del dataset (una vez convertido a CSV) identificadas para el modelado semántico son:
+### 2.3. Estrategia de nombrado
 
-* `d_denomina`: Nombre oficial del bien (Mapeo a `rdfs:label`).
-* `d_categori`: Categoría administrativa (ej. "Monumento", "Conjunto Histórico"). Se usará para definir el tipo de instancia (`rdf:type`).
-* `c_bien_id`: Identificador único que se utilizará para la generación de la URI del recurso.
-* `f_protecci`: Fecha de declaración del bien. Requiere transformación de formato a `xsd:date` (ISO 8601).
-* `url_pweb`: Enlace a la ficha descriptiva en el portal de patrimonio (Mapeo a `rdfs:seeAlso`).
+Se ha definido una política de nombrado de URIs persistente y única para evitar colisiones en la Web de Datos:
 
-**Georreferenciación:**
-El archivo de atributos textuales (.dbf/.csv) **no incluye coordenadas explícitas** (Latitud/Longitud), ya que estas residían en la geometría del Shapefile.
-* *Estrategia:* Se utilizarán servicios de **reconciliación** en OpenRefine (contra Wikidata) para recuperar las coordenadas geográficas (`geo:lat`, `geo:long`) basándose en el nombre del monumento y su municipio.
+* **URI Base de Recursos:** `http://patrimonio.jcyl.es/recurso/bic/{ID_UNICO}`.
+* **Vocabulario local:** Los términos específicos no cubiertos por ontologías estándar se definen bajo el espacio de nombres `http://patrimonio.jcyl.es/ontology#`.
 
-### 2.4. Licencia
-Los datos originales se publican bajo la **Licencia IGCYL-NC** (Uso no comercial), disponible en: [https://www.jcyl.es/licencia-IGCYL-NC](https://www.jcyl.es/licencia-IGCYL-NC).
+### 2.4. Desarrollo del vocabulario
 
-En consecuencia, y para respetar los términos de reutilización, el dataset transformado resultante se publicará bajo una licencia **CC-BY-NC 4.0** (Creative Commons Attribution-NonCommercial), permitiendo su reutilización siempre que se cite la fuente y no se persigan fines comerciales.
+Se ha implementado un vocabulario ligero en formato Turtle (`ontology.ttl`) que soporta íntegramente los datos de origen. En lugar de una ontología compleja, se ha priorizado la reutilización de vocabularios estándar del W3C para maximizar la interoperabilidad:
+
+* `rdfs:label` para nombres oficiales.
+* `geo:lat` y `geo:long` para la georreferenciación.
+* `foaf:depiction` para recursos multimedia.
+* `dcterms:date` para la cronología administrativa.
+
+### 2.5. Ejecución del Proceso (ETL)
+
+Se ha utilizado **OpenRefine** con la extensión RDF Transform debido a su capacidad para manejar grandes volúmenes de datos y su soporte para lenguajes de expresión como **GREL**.
+
+1. **Limpieza:** Se aplicó un script GREL para corregir errores de codificación (*mojibake*) y normalizar caracteres especiales (ñ, tildes).
+2. **Scraping:** Se parsearon las fichas web oficiales de la Junta para recuperar fechas de declaración que faltaban en el dataset original.
+3. **Adecuación:** Se normalizaron los textos a mayúsculas y se eliminaron columnas redundantes sin valor semántico.
+4. **Reproducibilidad:** Todo el historial de operaciones de transformación ha sido exportado y guardado en el archivo `scripts/script_limpieza.json`. Esto permite auditar y replicar íntegramente el proceso de curación de datos sobre el dataset original.
+
+### 2.6. Enlazado (Linked Open Data)
+
+El enriquecimiento se realizó mediante la reconciliación de la columna de nombres con **Wikidata**. Mediante la propiedad `owl:sameAs`, se han generado enlaces a las entidades de Wikidata, permitiendo recuperar coordenadas geográficas y fotografías de Wikimedia Commons.
+
+Adicionalmente, para asegurar una alta disponibilidad de acceso a la nube LOD, la arquitectura de la aplicación web implementa un mecanismo híbrido: utiliza la URI de `owl:sameAs` como fuente primaria de enlazado y, en caso de ausencia, construye dinámicamente URIs de búsqueda en Wikipedia basadas en el `rdfs:label` del recurso.
+
+### 2.7. Publicación
+
+Para la explotación de los datos, el grafo resultante `BIC-CyL.ttl` se ha desplegado localmente mediante un servidor **Apache Jena Fuseki**. Este entorno proporciona un endpoint SPARQL que actúa como motor de consultas para la capa de visualización.
+
+## 3. Aplicación y Explotación
+
+### 3.1. Funcionalidades y Valor Añadido
+
+La solución desarrollada es un visor cartográfico interactivo que aporta valor mediante:
+
+* **Búsqueda Semántica:** Filtrado por etiquetas y categorías de monumento.
+* **Geofencing Dinámico:** Herramienta SIG que permite al usuario seleccionar una zona personalizada en el mapa y recalcular estadísticas en tiempo real.
+* **Análisis Visual:** Un dashboard (Chart.js) que muestra la distribución porcentual de categorías según la vista actual del mapa.
+
+### 3.2. Implementación de Consultas SPARQL
+
+La aplicación web recupera la información de los monumentos, su georreferenciación y metadatos externos mediante una consulta SPARQL optimizada:
+
+```sparql
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX geo: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX dc: <http://purl.org/dc/terms/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+SELECT DISTINCT ?nombre ?latitud ?longitud ?enlaceFoto ?tipo ?fecha ?enlaceFuente ?enlaceWikidata
+WHERE {
+  ?monumento rdfs:label ?nombre .
+  ?monumento geo:lat ?latitud .
+  ?monumento geo:long ?longitud .
+  
+  OPTIONAL { ?monumento rdf:type ?tipo . }
+  OPTIONAL { ?monumento dc:date ?fecha . }
+  OPTIONAL { ?monumento foaf:homepage ?enlaceFuente . }
+  OPTIONAL { ?monumento owl:sameAs ?enlaceWikidata . }
+  OPTIONAL { 
+    ?monumento foaf:depiction ?nombreFoto .
+    BIND(CONCAT("https://commons.wikimedia.org/wiki/Special:FilePath/", ENCODE_FOR_URI(STR(?nombreFoto))) AS ?enlaceFoto)
+  }
+  
+  # Filtro espacial Bounding Box (Castilla y León)
+  FILTER (xsd:float(?latitud) > 40.05 && xsd:float(?latitud) < 43.30 && xsd:float(?longitud) > -7.25 && xsd:float(?longitud) < -1.70)
+  
+  # Filtros de exclusión para depuración de ruido geográfico limítrofe
+  FILTER (!(xsd:float(?latitud) < 41.02 && xsd:float(?longitud) > -3.95 && xsd:float(?longitud) < -3.00))
+  FILTER (!(xsd:float(?latitud) < 40.74 && xsd:float(?longitud) > -4.15 && xsd:float(?longitud) < -3.85))
+  FILTER (!(xsd:float(?latitud) < 41.25 && xsd:float(?longitud) > -2.90 && xsd:float(?longitud) < -2.70))
+  FILTER (!(xsd:float(?latitud) < 41.40 && xsd:float(?longitud) > -2.00 && xsd:float(?longitud) < -1.70))
+  FILTER (!(xsd:float(?latitud) > 42.15 && xsd:float(?latitud) < 42.60 && xsd:float(?longitud) > -3.05 && xsd:float(?longitud) < -1.70))
+  FILTER (!(xsd:float(?latitud) > 42.75 && xsd:float(?latitud) < 43.30 && xsd:float(?longitud) > -3.05 && xsd:float(?longitud) < -1.70))
+  FILTER (!(xsd:float(?latitud) > 43.00 && xsd:float(?longitud) > -4.10 && xsd:float(?longitud) < -3.85))
+  FILTER (!(xsd:float(?latitud) > 43.10 && xsd:float(?longitud) > -3.85 && xsd:float(?longitud) < -3.40))
+}
+LIMIT 1000
+
+```
+
+**Justificación técnica de la consulta:** 
+1. **Calidad de datos espaciales:** Se ha implementado un filtrado espacial mediante múltiples cláusulas `FILTER`. Esto permite definir un *Bounding Box* general para Castilla y León y excluir de forma precisa las coordenadas que corresponden a comunidades limítrofes (como Madrid, Cantabria, País Vasco o La Rioja). Esta técnica depura el ruido geográfico originado en la reconciliación con Wikidata directamente en el motor SPARQL, garantizando que el frontend solo renderice instancias correctas.
+2. **Integridad y compatibilidad:** Se utiliza `DISTINCT` para evitar duplicidades producidas por el cruce de grafos durante el enlazado, y `ENCODE_FOR_URI` para asegurar que las URLs de imágenes multimedia con caracteres especiales sean interpretadas correctamente por el navegador.
+
+## 4. Estructura del Repositorio
+
+* 📁 `app/`: Cliente web interactivo (HTML, JS, CSS).
+* 📁 `data/`: Datasets en formato original (.dbf) y procesado (.csv).
+* 📁 `images/`: Capturas de pantalla de la aplicación.
+* 📁 `metadata/`: Descripción VoID/DCAT del dataset para su descubrimiento por máquinas.
+* 📁 `ontology/`: Definiciones del vocabulario local en Turtle (`ontology.ttl`).
+* 📁 `rdf/`: Producto final serializado (`BIC-CyL.ttl`).
+* 📁 `scripts/`: Historial de operaciones JSON para asegurar la reproducibilidad del proceso ETL.
+
+## 5. Instrucciones de Despliegue y Ejecución
+
+Para replicar el entorno de ejecución y visualizar la aplicación web localmente, es necesario:
+
+**1. Despliegue del Servidor Semántico (Apache Jena Fuseki)**
+* Descargar e iniciar Apache Jena Fuseki.
+* En la interfaz de administración (habitualmente `http://localhost:3030`), crear un nuevo dataset.
+* **IMPORTANTE:** El nombre del dataset debe ser exactamente `bic_cyl` (para que coincida con el endpoint configurado en la aplicación cliente).
+* Seleccionar el tipo de dataset como **Persistent (TDB2)** para mayor eficiencia.
+* Cargar el archivo `rdf/BIC-CyL.ttl` dentro de este nuevo dataset.
+
+**2. Ejecución de la Aplicación Web**
+* Se puede abrir directamente dando doble clic en el archivo `app/index.html`.
+* Como segunda opción se puede iniciar un servidor local (por ejemplo, con Python: `python -m http.server 8000` desde la raíz del proyecto) y acceder a `http://localhost:8000/app/index.html` para evitar problemas de CORS.
+
+## 6. Conclusiones
+
+El proyecto demuestra que es posible transformar datos administrativos aislados en un Grafo de Conocimiento dinámico. La integración de tecnologías como OpenRefine y Jena Fuseki permite no solo la limpieza de datos, sino su conversión en un recurso útil para el análisis patrimonial y la toma de decisiones basada en datos enlazados.
+
+## 7. Bibliografía
+
+* **W3C (2014).** *RDF 1.1 Concepts and Abstract Syntax*.
+* **W3C (2013).** *SPARQL 1.1 Query Language*.
+* **W3C (2014).** *Data Catalog Vocabulary (DCAT)*.
+* **Junta de Castilla y León.** *Portal de Datos Abiertos*.

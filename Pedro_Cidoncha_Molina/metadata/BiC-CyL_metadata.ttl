@@ -1,0 +1,37 @@
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix void: <http://rdfs.org/ns/void#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix : <http://localhost:3030/bic_cyl/data/> .
+
+## DESCRIPCIÓN DEL DATASET (DCAT & VoID)
+:BIC-Castilla-y-Leon a void:Dataset, dcat:Dataset ;
+    dcterms:title "Grafo de Conocimiento de Bienes de Interés Cultural de Castilla y León" ;
+    dcterms:description "Dataset transformado a RDF que contiene información geolocalizada, tipologías y enlaces a Wikidata de los Bienes de Interés Cultural (BIC) de Castilla y León, derivado de datos abiertos de la Junta de Castilla y León." ;
+    
+    ## AUTORÍA
+    dcterms:creator :PedroCidonchaMolina ;
+    dcterms:publisher :PedroCidonchaMolina ;
+    dcterms:issued "2024-05-20"^^xsd:date ;
+    
+    ## LICENCIA Y DISTRIBUCIÓN
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
+    void:feature <http://www.w3.org/ns/formats/Turtle> ;
+    
+    ## ESTADÍSTICAS DEL GRAFO
+    void:triples "15251"^^xsd:integer ;
+    void:entities "1000"^^xsd:integer ; # Aproximación de monumentos únicos
+    
+    ## INTEROPERABILIDAD (LINKED DATA)
+    void:objectsTarget <http://www.wikidata.org/entity/> ;
+    void:vocabulary <http://www.w3.org/2000/01/rdf-schema#>, 
+                    <http://www.w3.org/2003/01/geo/wgs84_pos#>, 
+                    <http://xmlns.com/foaf/0.1/>, 
+                    <http://purl.org/dc/terms/> .
+
+## DATOS DEL AUTOR
+:PedroCidonchaMolina a foaf:Person ;
+    foaf:name "Pedro Cidoncha Molina" ;
+    foaf:mbox <mailto:tu-email@ejemplo.com> ; # Puedes cambiarlo o quitarlo
+    foaf:workplaceHomepage <https://www.uva.es/> . # O tu universidad correspondiente
