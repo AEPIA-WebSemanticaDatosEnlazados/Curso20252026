@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadios de Fútbol del Mundo</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div id="panel-izquierdo">
+        
+        <div class="cabecera-animada">
+            <div class="cabecera-contenido">
+                <h1 style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <img src="fifa26.png" alt="Logo FIFA 26" style="height: 32px; width: auto;"> 
+                    Estadios del Mundo
+                </h1>
+                <p>Visor Semántico de Datos Enlazados</p>
+            </div>
+        </div>
+
+        <div class="caja-panel" id="caja-buscador">
+            <div class="contenedor-input-buscador">
+                <input type="text" id="input-buscador" placeholder="Buscar estadio..." autocomplete="off">
+                <button id="btn-buscar" class="btn-lupa" title="Buscar">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+            </div>
+            <div id="sugerencias"></div>
+        </div>
+
+        <div class="caja-panel" style="padding: 15px;">
+            <label style="font-size: 14px; font-weight: bold; color: #2c3e50; display: block; margin-bottom: 10px;">📍 Filtro Espacial:</label>
+            <div style="display: flex; gap: 8px;">
+                <button id="btn-dibujar" class="btn-accion" style="flex: 2;">📐 Dibujar zona</button>
+                <button id="btn-borrar-dibujo" class="btn-accion" style="flex: 1; opacity: 0.5;" disabled title="Borrar zona">❌ Borrar</button>
+            </div>
+            <p id="texto-ayuda-dibujo" style="font-size: 12px; color: #27ae60; font-weight: bold; margin: 10px 0 0 0; display: none; text-align: center;">
+                Haz clic y arrastra sobre el mapa.
+            </p>
+        </div>
+
+        <div class="caja-panel">
+            <h3>Confederaciones</h3>
+            <div id="contenedor-filtros">Cargando...</div>
+        </div>
+
+        <div class="caja-panel">
+            <h3>País</h3>
+            <select id="filtro-pais" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; cursor: pointer;">
+                <option value="">🌍 Todos los países</option>
+            </select>
+        </div>
+
+        <div class="caja-panel" style="flex-grow: 1; display: flex; flex-direction: column;">
+            <h3>Distribución de Estadios</h3>
+            <div id="total-monumentos">Calculando...</div>
+            <div class="contenedor-canvas">
+                <canvas id="graficoCategorias"></canvas>
+            </div>
+            <div id="leyenda-grafico"></div>
+        </div>
+
+    </div>
+
+    <div id="mapa"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

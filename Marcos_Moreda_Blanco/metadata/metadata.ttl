@@ -1,0 +1,20 @@
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix void: <http://rdfs.org/ns/void#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<http://futbol.linkeddata.es/dataset/Estadios> a dcat:Dataset, void:Dataset ;
+    dct:title "Grafo de Conocimiento de Estadios de Fútbol del Mundo"@es ;
+    dct:description "Dataset enlazado que contiene información sobre estadios, sus capacidades, ubicaciones reconciliadas en Wikidata y clubes residentes."@es ;
+    dct:creator [ a foaf:Person ; foaf:name "Marcos Moreda Blanco" ] ;
+    dct:issued "2026-07-12"^^xsd:date ;
+    dct:license <http://creativecommons.org/licenses/by/4.0/> ;
+    dct:language <http://id.loc.gov/vocabulary/iso639-1/es> ;
+    dcat:distribution <http://futbol.linkeddata.es/dataset/Estadios/distribution/turtle> ;
+    void:vocabulary <http://schema.org/>, <http://futbol.linkeddata.es/ontology#> .
+
+<http://futbol.linkeddata.es/dataset/Estadios/distribution/turtle> a dcat:Distribution ;
+    dct:title "Distribución en formato Turtle"@es ;
+    dcat:mediaType "text/turtle" ;
+    dcat:downloadURL <https://github.com/MMB-29/WSDL/raw/main/rdf/football-stadiums.ttl> .

@@ -1,0 +1,43 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix schema: <http://schema.org/> .
+@prefix fut: <http://futbol.linkeddata.es/ontology#> .
+
+# --- Metadatos de la Ontología ---
+fut: a owl:Ontology ;
+    rdfs:label "Ontología de Infraestructuras y Clubes de Fútbol"@es ;
+    rdfs:comment "Vocabulario ligero para describir estadios de fútbol, su ubicación y los equipos locales."@es .
+
+# --- Clases ---
+fut:Estadio a owl:Class ;
+    rdfs:label "Estadio"@es ;
+    rdfs:comment "Infraestructura deportiva principal."@es .
+
+fut:Equipo a owl:Class ;
+    rdfs:label "Equipo de Fútbol"@es .
+
+fut:Confederacion a owl:Class ;
+    rdfs:label "Confederación Continental"@es .
+
+# --- Propiedades de Objeto (Relaciones) ---
+fut:ubicadoEnCiudad a owl:ObjectProperty ;
+    rdfs:label "ubicado en ciudad"@es ;
+    rdfs:domain fut:Estadio ;
+    rdfs:range schema:City .
+
+fut:esSedeDe a owl:ObjectProperty ;
+    rdfs:label "es sede de"@es ;
+    rdfs:domain fut:Estadio ;
+    rdfs:range fut:Equipo .
+
+fut:perteneceAConfederacion a owl:ObjectProperty ;
+    rdfs:label "pertenece a confederación"@es ;
+    rdfs:range fut:Confederacion .
+
+# --- Propiedades de Datos (Atributos) ---
+fut:capacidadTotal a owl:DatatypeProperty ;
+    rdfs:label "capacidad total"@es ;
+    rdfs:domain fut:Estadio ;
+    rdfs:range xsd:integer .
