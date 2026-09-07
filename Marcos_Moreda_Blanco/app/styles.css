@@ -1,0 +1,143 @@
+body { margin: 0; padding: 0; font-family: Arial, sans-serif; background: #f4f4f9; }
+#mapa { height: 100vh; width: 100%; z-index: 1; } 
+
+.cursor-dibujo { cursor: crosshair !important; }
+
+#panel-izquierdo {
+    position: absolute; top: 20px; left: 20px; z-index: 1000;
+    display: flex; flex-direction: column; gap: 15px; 
+    width: 320px; max-height: calc(100vh - 40px);
+    pointer-events: none; 
+    overflow-y: auto; 
+}
+#panel-izquierdo::-webkit-scrollbar { display: none; }
+
+.caja-panel {
+    background: rgba(255, 255, 255, 0.95); padding: 15px; border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    pointer-events: auto; 
+    backdrop-filter: blur(5px);
+}
+
+.cabecera-animada {
+    position: relative;
+    border-radius: 12px;
+    padding: 4px;
+    overflow: hidden;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    flex-shrink: 0;
+}
+
+.cabecera-animada::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 800px;
+    height: 800px;
+    background: conic-gradient(from 0deg, #e74c3c, #3498db, #2ecc71, #e74c3c);
+    animation: girarBorde 4s linear infinite;
+    z-index: 0;
+}
+
+@keyframes girarBorde {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.cabecera-contenido {
+    position: relative;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 8px;
+    padding: 20px 15px;
+    text-align: center;
+    z-index: 1;
+}
+
+.cabecera-contenido h1 { 
+    margin: 0; 
+    font-size: 20px; 
+    color: #2c3e50; 
+    letter-spacing: 0.5px; 
+}
+
+.cabecera-contenido p { 
+    margin: 5px 0 0 0; 
+    font-size: 13px; 
+    color: #555; 
+}
+
+h3 { margin: 0 0 12px 0; font-size: 16px; color: #2c3e50; border-bottom: 2px solid #27ae60; padding-bottom: 5px; }
+
+.btn-accion {
+    padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 13px; font-weight: bold;
+    cursor: pointer; background: white; transition: 0.2s; width: 100%;
+}
+.btn-accion:hover { background: #f0f0f0; }
+.btn-activo { background: #27ae60; color: white; border-color: #219653; }
+.btn-activo:hover { background: #219653; }
+
+.contenedor-input-buscador {
+    position: relative;
+    width: 100%;
+}
+
+#input-buscador { 
+    width: 100%; 
+    padding: 10px 45px 10px 10px; 
+    border: 1px solid #ccc; 
+    border-radius: 6px; 
+    font-size: 14px; 
+    box-sizing: border-box;
+    transition: border-color 0.3s; 
+}
+
+#input-buscador:focus {
+    outline: none;
+    border-color: #27ae60;
+}
+
+.btn-lupa {
+    position: absolute;
+    right: 4px; 
+    top: 4px; 
+    bottom: 4px; 
+    width: 36px; 
+    background-color: #27ae60; 
+    color: white; 
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+    font-size: 14px;
+}
+
+.btn-lupa:hover {
+    background-color: #219653; 
+}
+
+#sugerencias {
+    position: absolute; top: 100%; left: 0; width: 100%; background: white;
+    border-radius: 0 0 8px 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    max-height: 200px; overflow-y: auto; display: none; margin-top: 2px; z-index: 1001;
+}
+.sugerencia-item { padding: 10px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #eee; }
+.sugerencia-item:hover { background: #e8f5e9; }
+
+#contenedor-filtros { max-height: 150px; overflow-y: auto; }
+.filtro-opcion { display: block; margin-bottom: 8px; font-size: 14px; cursor: pointer; color: #444; }
+.filtro-opcion input { margin-right: 8px; cursor: pointer; }
+
+#total-monumentos { text-align: center; font-size: 14px; color: #555; margin-bottom: 10px; font-weight: bold;}
+.contenedor-canvas { height: 180px; width: 100%; position: relative; } 
+#leyenda-grafico { margin-top: 15px; }
+.leyenda-item { display: flex; align-items: center; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+.leyenda-color { width: 14px; height: 14px; display: inline-block; margin-right: 8px; border-radius: 3px; flex-shrink: 0;}
+.leyenda-texto { flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 10px; }
+.leyenda-valor { font-weight: bold; color: #333; }
+
+.popup-titulo { font-weight: bold; font-size: 16px; color: #2c3e50; margin-bottom: 8px;}
+.etiqueta-capacidad { background: #27ae60; color: white; padding: 3px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; }
